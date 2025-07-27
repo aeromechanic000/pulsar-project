@@ -1,0 +1,4 @@
+12:56:49,23 root INFO Starting Flask server on http://localhost:5000
+12:56:50,487 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 12:56:50] "GET /socket.io/?EIO=4&transport=polling&t=PXAFQGo HTTP/1.1" 200 -
+12:56:50,495 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 12:56:50] "POST /socket.io/?EIO=4&transport=polling&t=PXAFQGu&sid=qJrCd_3KUEx-8DuVAAAA HTTP/1.1" 200 -
+12:56:50,496 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 12:56:50] "GET /socket.io/?EIO=4&transport=polling&t=PXAFQGv&sid=qJrCd_3KUEx-8DuVAAAA HTTP/1.1" 200 -

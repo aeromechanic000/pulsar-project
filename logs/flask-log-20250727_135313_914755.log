@@ -1,0 +1,240 @@
+13:53:13,916 root INFO Starting Flask server on http://localhost:9898
+13:53:14,69 werkzeug INFO [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:9898
+ * Running on http://192.168.151.29:9898
+13:53:14,69 werkzeug INFO [33mPress CTRL+C to quit[0m
+13:53:16,203 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:53:16] "GET /socket.io/?EIO=4&transport=polling&t=PXASKsQ HTTP/1.1" 200 -
+13:53:16,211 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:53:16] "POST /socket.io/?EIO=4&transport=polling&t=PXASKsk&sid=r7Y0KC_ZQ2YSghSyAAAA HTTP/1.1" 200 -
+13:53:16,213 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:53:16] "GET /socket.io/?EIO=4&transport=polling&t=PXASKsl&sid=r7Y0KC_ZQ2YSghSyAAAA HTTP/1.1" 200 -
+13:53:17,752 root INFO Client disconnected
+13:53:17,752 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:53:17] "GET /socket.io/?EIO=4&transport=websocket&sid=r7Y0KC_ZQ2YSghSyAAAA HTTP/1.1" 200 -
+13:53:17,769 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:53:17] "GET / HTTP/1.1" 200 -
+13:53:17,836 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:53:17] "[33mGET /static/styles.css HTTP/1.1[0m" 404 -
+13:53:19,450 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:53:19] "GET /static/app.jsx HTTP/1.1" 200 -
+13:53:19,672 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:53:19] "GET /socket.io/?EIO=4&transport=polling&t=PXASLir HTTP/1.1" 200 -
+13:53:19,706 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:53:19] "POST /socket.io/?EIO=4&transport=polling&t=PXASLjN&sid=iL_SagG-iaOYWpDQAAAC HTTP/1.1" 200 -
+13:53:19,713 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:53:19] "GET /socket.io/?EIO=4&transport=polling&t=PXASLjN.0&sid=iL_SagG-iaOYWpDQAAAC HTTP/1.1" 200 -
+13:53:19,730 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:53:19] "GET /socket.io/?EIO=4&transport=polling&t=PXASLjd&sid=iL_SagG-iaOYWpDQAAAC HTTP/1.1" 200 -
+13:53:19,735 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:53:19] "[36mGET /static/icon.png HTTP/1.1[0m" 304 -
+13:53:46,487 root INFO Client disconnected
+13:53:46,488 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:53:46] "GET /socket.io/?EIO=4&transport=websocket&sid=iL_SagG-iaOYWpDQAAAC HTTP/1.1" 200 -
+13:53:46,499 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:53:46] "GET / HTTP/1.1" 200 -
+13:53:46,543 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:53:46] "[33mGET /static/styles.css HTTP/1.1[0m" 404 -
+13:53:46,610 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:53:46] "[36mGET /static/app.jsx HTTP/1.1[0m" 304 -
+13:53:46,760 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:53:46] "GET /socket.io/?EIO=4&transport=polling&t=PXASSK5 HTTP/1.1" 200 -
+13:53:46,783 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:53:46] "POST /socket.io/?EIO=4&transport=polling&t=PXASSKP&sid=P3Vc8PCMe8Fwcbi9AAAE HTTP/1.1" 200 -
+13:53:46,784 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:53:46] "GET /socket.io/?EIO=4&transport=polling&t=PXASSKP.0&sid=P3Vc8PCMe8Fwcbi9AAAE HTTP/1.1" 200 -
+13:53:46,787 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:53:46] "[36mGET /static/icon.png HTTP/1.1[0m" 304 -
+13:55:00,335 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:55:00] "[33mGET /static/styles.css HTTP/1.1[0m" 404 -
+13:55:00,343 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:55:00] "[33mGET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1[0m" 404 -
+13:55:20,821 root INFO Client disconnected
+13:55:20,822 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:55:20] "GET /socket.io/?EIO=4&transport=websocket&sid=P3Vc8PCMe8Fwcbi9AAAE HTTP/1.1" 200 -
+13:55:20,835 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:55:20] "GET / HTTP/1.1" 200 -
+13:55:20,870 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:55:20] "[33mGET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1[0m" 404 -
+13:55:20,882 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:55:20] "GET /static/styles.css HTTP/1.1" 200 -
+13:55:21,529 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:55:21] "[36mGET /static/app.jsx HTTP/1.1[0m" 304 -
+13:55:21,829 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:55:21] "GET /socket.io/?EIO=4&transport=polling&t=PXASpXY HTTP/1.1" 200 -
+13:55:21,866 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:55:21] "POST /socket.io/?EIO=4&transport=polling&t=PXASpY3&sid=HrPVg7Eo6-nomCa6AAAG HTTP/1.1" 200 -
+13:55:21,867 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:55:21] "GET /socket.io/?EIO=4&transport=polling&t=PXASpY4&sid=HrPVg7Eo6-nomCa6AAAG HTTP/1.1" 200 -
+13:55:21,878 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:55:21] "[36mGET /static/icon.png HTTP/1.1[0m" 304 -
+13:55:26,665 asyncio DEBUG Using selector: KqueueSelector
+13:55:27,240 root INFO Loaded 1 MCP server configurations
+13:55:27,701 root INFO Connected to MCP server: weather
+13:55:27,701 root INFO TaskManager is using client's provider.
+13:55:27,701 root INFO Memory is using the client's provider.
+13:55:27,701 root INFO Using provider: Doubao
+13:55:27,703 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:55:27] "POST /api/initialize HTTP/1.1" 200 -
+13:55:27,710 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:55:27] "GET /api/tasks HTTP/1.1" 200 -
+13:55:27,711 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:55:27] "GET /api/memory HTTP/1.1" 200 -
+13:55:27,714 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:55:27] "GET /api/memory/operations HTTP/1.1" 200 -
+13:55:27,716 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:55:27] "GET /api/tools HTTP/1.1" 200 -
+13:55:27,727 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:55:27] "GET /api/tasks/1/detailed HTTP/1.1" 200 -
+13:55:51,891 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:55:51] "GET /api/memory/details HTTP/1.1" 200 -
+13:55:54,11 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:55:54] "GET /api/memory/details HTTP/1.1" 200 -
+13:56:00,125 root INFO Get static_memory_text: 
+## Available Memory Operations:
+- add_memory_data: 'Add a key-value pair to the memory database.
+
+    Args:
+        key: A key for the data to add;
+        value: A string value;
+
+  Input schema: {"properties": {"key": {"title": "Key", "type": "string"}, "value": {"title": "Value", "type": "string"}}, "title": "AddMemoryDataArguments", "type": "object", "required": ["key", "value"]}
+13:56:00,125 root INFO Get static_task_text: 
+13:56:00,125 root INFO Get dynamic_memory_text: 
+13:56:00,125 root INFO Get dynamic_task_text: 
+13:56:00,128 root INFO Prompt: 
+I am an AI assistant, which is good at answer user's query from the conversations, based on the memory status and task status. In generating the response, I will consider to answer with four parts: 
+1. Think: analyze the context and think about what to do next.
+2. Text: the text response to the user's query.
+3. Memory Operation: if I need to perform a memory operation, I will return the operation name and parameters. Make sure a memroy operation is really necessary and not redundant and not repetitive. 
+4. Tool: if I need to use a tool, I will return the tool name and parameters. Make sure a memroy operation is really necessary and not redundant and not repetitive. 
+
+The result should be formatted in **JSON** dictionary and enclosed in **triple backticks (` ``` ` )**  without labels like 'json', 'css', or 'data'.
+- **Do not** generate redundant content other than the result in JSON format.
+- **Do not** use triple backticks anywhere else in your answer.
+- The JSON must include the following keys and values accordingly :
+    - 'text': A JSON String for the text response to the user's query.
+    - 'think': A JSON String for the description of the thinking process to response to the user's query.
+    - 'mem_op': ONlY USED when you need to perform a memory operation (from the available memory operations), the value is a dictionary with the operation name and parameters: 
+        - 'name': The name of the memory operation.
+        - 'args': A dictionary of arguments for the operation.
+    - 'tool': ONLY USED when you need to use a tool (from the available tools), the value is a dictionary with the tool name and parameters:
+        - 'name': The name of the tool to use.
+        - 'args': A dictionary of arguments for the tool.
+    
+
+## Static Memory:
+
+## Available Memory Operations:
+- add_memory_data: 'Add a key-value pair to the memory database.
+
+    Args:
+        key: A key for the data to add;
+        value: A string value;
+
+  Input schema: {"properties": {"key": {"title": "Key", "type": "string"}, "value": {"title": "Value", "type": "string"}}, "title": "AddMemoryDataArguments", "type": "object", "required": ["key", "value"]}
+
+## Available Tools:
+- get_alerts: 'Get weather alerts for a US state.
+
+    Args:
+        state: Two-letter US state code (e.g. CA, NY)
+    
+  Input schema: {"properties": {"state": {"title": "State", "type": "string"}}, "required": ["state"], "title": "get_alertsArguments", "type": "object"}
+- get_forecast: 'Get weather forecast for a location.
+
+    Args:
+        latitude: Latitude of the location
+        longitude: Longitude of the location
+    
+  Input schema: {"properties": {"latitude": {"title": "Latitude", "type": "number"}, "longitude": {"title": "Longitude", "type": "number"}}, "required": ["latitude", "longitude"], "title": "get_forecastArguments", "type": "object"}
+## Conversation History:
+
+User Query: hi
+
+Your Answer:
+
+13:56:03,470 root INFO Text response: ```
+{
+    "text": "Hello! How can I help you today?",
+    "think": "The user sent a simple greeting 'hi'. The appropriate response is a friendly greeting and an offer to assist. No memory operation or tool is needed in this case.",
+    "mem_op": {},
+    "tool": {}
+}
+```
+13:56:03,477 root INFO Extracted data: {'text': 'Hello! How can I help you today?', 'think': "The user sent a simple greeting 'hi'. The appropriate response is a friendly greeting and an offer to assist. No memory operation or tool is needed in this case.", 'mem_op': {}, 'tool': {}}
+13:56:03,477 root INFO Dict response: {'text': 'Hello! How can I help you today?', 'think': "The user sent a simple greeting 'hi'. The appropriate response is a friendly greeting and an offer to assist. No memory operation or tool is needed in this case."}
+13:56:03,477 root INFO Response: {'content': [{'type': 'think', 'content': "The user sent a simple greeting 'hi'. The appropriate response is a friendly greeting and an offer to assist. No memory operation or tool is needed in this case."}, {'type': 'text', 'text': 'Hello! How can I help you today?'}]}
+13:56:03,478 root INFO Task 1 updated successfully. Files extracted: 0
+13:56:03,479 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:56:03] "POST /api/chat HTTP/1.1" 200 -
+13:56:03,504 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:56:03] "GET /api/tasks HTTP/1.1" 200 -
+13:56:03,505 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:56:03] "GET /api/memory HTTP/1.1" 200 -
+13:56:03,507 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:56:03] "GET /api/memory/operations HTTP/1.1" 200 -
+13:56:03,509 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:56:03] "GET /api/tools HTTP/1.1" 200 -
+13:56:22,48 root INFO Get static_memory_text: 
+## Available Memory Operations:
+- add_memory_data: 'Add a key-value pair to the memory database.
+
+    Args:
+        key: A key for the data to add;
+        value: A string value;
+
+  Input schema: {"properties": {"key": {"title": "Key", "type": "string"}, "value": {"title": "Value", "type": "string"}}, "title": "AddMemoryDataArguments", "type": "object", "required": ["key", "value"]}
+13:56:22,48 root INFO Get static_task_text: 
+13:56:22,48 root INFO Get dynamic_memory_text: 
+13:56:22,48 root INFO Get dynamic_task_text: 
+13:56:22,51 root INFO Prompt: 
+I am an AI assistant, which is good at answer user's query from the conversations, based on the memory status and task status. In generating the response, I will consider to answer with four parts: 
+1. Think: analyze the context and think about what to do next.
+2. Text: the text response to the user's query.
+3. Memory Operation: if I need to perform a memory operation, I will return the operation name and parameters. Make sure a memroy operation is really necessary and not redundant and not repetitive. 
+4. Tool: if I need to use a tool, I will return the tool name and parameters. Make sure a memroy operation is really necessary and not redundant and not repetitive. 
+
+The result should be formatted in **JSON** dictionary and enclosed in **triple backticks (` ``` ` )**  without labels like 'json', 'css', or 'data'.
+- **Do not** generate redundant content other than the result in JSON format.
+- **Do not** use triple backticks anywhere else in your answer.
+- The JSON must include the following keys and values accordingly :
+    - 'text': A JSON String for the text response to the user's query.
+    - 'think': A JSON String for the description of the thinking process to response to the user's query.
+    - 'mem_op': ONlY USED when you need to perform a memory operation (from the available memory operations), the value is a dictionary with the operation name and parameters: 
+        - 'name': The name of the memory operation.
+        - 'args': A dictionary of arguments for the operation.
+    - 'tool': ONLY USED when you need to use a tool (from the available tools), the value is a dictionary with the tool name and parameters:
+        - 'name': The name of the tool to use.
+        - 'args': A dictionary of arguments for the tool.
+    
+
+## Static Memory:
+
+## Available Memory Operations:
+- add_memory_data: 'Add a key-value pair to the memory database.
+
+    Args:
+        key: A key for the data to add;
+        value: A string value;
+
+  Input schema: {"properties": {"key": {"title": "Key", "type": "string"}, "value": {"title": "Value", "type": "string"}}, "title": "AddMemoryDataArguments", "type": "object", "required": ["key", "value"]}
+
+## Available Tools:
+- get_alerts: 'Get weather alerts for a US state.
+
+    Args:
+        state: Two-letter US state code (e.g. CA, NY)
+    
+  Input schema: {"properties": {"state": {"title": "State", "type": "string"}}, "required": ["state"], "title": "get_alertsArguments", "type": "object"}
+- get_forecast: 'Get weather forecast for a location.
+
+    Args:
+        latitude: Latitude of the location
+        longitude: Longitude of the location
+    
+  Input schema: {"properties": {"latitude": {"title": "Latitude", "type": "number"}, "longitude": {"title": "Longitude", "type": "number"}}, "required": ["latitude", "longitude"], "title": "get_forecastArguments", "type": "object"}
+## Conversation History:
+USER: hi
+ASSISTANT: Hello! How can I help you today?
+
+User Query: make a plan for the visit to HK
+
+Your Answer:
+
+13:56:33,466 root INFO Text response: ```
+{
+    "text": "Here is a simple 3 - day plan for a visit to Hong Kong:\n\n**Day 1: Victoria Harbour and Tsim Sha Tsui**\n- Morning: Arrive at Hong Kong International Airport. Take the Airport Express to Tsim Sha Tsui. Check - in at your hotel. Then, head to the Avenue of Stars along Victoria Harbour. You can enjoy the view of the Hong Kong Island skyline and see the statues of famous Hong Kong movie stars.\n- Afternoon: Visit the Hong Kong Museum of Art and the Hong Kong Space Museum, which are both located in Tsim Sha Tsui. \n- Evening: Have dinner at a local restaurant in Tsim Sha Tsui. Then, watch the Symphony of Lights, a spectacular light - and - sound show on the buildings around Victoria Harbour.\n\n**Day 2: Hong Kong Disneyland**\n- Morning: Take public transportation to Hong Kong Disneyland. Spend the whole day enjoying the various rides, shows, and parades in the theme park. You can meet your favorite Disney characters here.\n- Afternoon: Have lunch and continue exploring different themed areas like Adventureland, Fantasyland, and Tomorrowland.\n- Evening: Watch the fireworks show at the end of the day before leaving the park.\n\n**Day 3: Central and Mid - levels**\n- Morning: Go to Central. Visit the Bank of China Tower and the HSBC Main Building, which are famous for their unique architecture. Then, take the Central - Mid - levels Escalator, the longest outdoor covered escalator system in the world. Along the way, you can explore the trendy shops and cafes in SoHo.\n- Afternoon: Have lunch in Central. You can also visit the Hong Kong Zoological and Botanical Gardens if you have time.\n- Evening: Have a farewell dinner in Central and then head to the airport for your departure.\n\nThis is just a basic plan, and you can adjust it according to your interests and the length of your stay.",
+    "think": "The user requests a plan for a visit to HK. I first listed a 3 - day travel plan covering popular attractions in Hong Kong such as Victoria Harbour, Hong Kong Disneyland, Central, etc. No memory operation or tool is needed as the response can be generated based on general knowledge.",
+    "mem_op": {},
+    "tool": {}
+}
+```
+13:56:33,498 root INFO Extracted data: {'text': 'Here is a simple 3 - day plan for a visit to Hong Kong:\n\n**Day 1: Victoria Harbour and Tsim Sha Tsui**\n- Morning: Arrive at Hong Kong International Airport. Take the Airport Express to Tsim Sha Tsui. Check - in at your hotel. Then, head to the Avenue of Stars along Victoria Harbour. You can enjoy the view of the Hong Kong Island skyline and see the statues of famous Hong Kong movie stars.\n- Afternoon: Visit the Hong Kong Museum of Art and the Hong Kong Space Museum, which are both located in Tsim Sha Tsui. \n- Evening: Have dinner at a local restaurant in Tsim Sha Tsui. Then, watch the Symphony of Lights, a spectacular light - and - sound show on the buildings around Victoria Harbour.\n\n**Day 2: Hong Kong Disneyland**\n- Morning: Take public transportation to Hong Kong Disneyland. Spend the whole day enjoying the various rides, shows, and parades in the theme park. You can meet your favorite Disney characters here.\n- Afternoon: Have lunch and continue exploring different themed areas like Adventureland, Fantasyland, and Tomorrowland.\n- Evening: Watch the fireworks show at the end of the day before leaving the park.\n\n**Day 3: Central and Mid - levels**\n- Morning: Go to Central. Visit the Bank of China Tower and the HSBC Main Building, which are famous for their unique architecture. Then, take the Central - Mid - levels Escalator, the longest outdoor covered escalator system in the world. Along the way, you can explore the trendy shops and cafes in SoHo.\n- Afternoon: Have lunch in Central. You can also visit the Hong Kong Zoological and Botanical Gardens if you have time.\n- Evening: Have a farewell dinner in Central and then head to the airport for your departure.\n\nThis is just a basic plan, and you can adjust it according to your interests and the length of your stay.', 'think': 'The user requests a plan for a visit to HK. I first listed a 3 - day travel plan covering popular attractions in Hong Kong such as Victoria Harbour, Hong Kong Disneyland, Central, etc. No memory operation or tool is needed as the response can be generated based on general knowledge.', 'mem_op': {}, 'tool': {}}
+13:56:33,498 root INFO Dict response: {'text': 'Here is a simple 3 - day plan for a visit to Hong Kong:\n\n**Day 1: Victoria Harbour and Tsim Sha Tsui**\n- Morning: Arrive at Hong Kong International Airport. Take the Airport Express to Tsim Sha Tsui. Check - in at your hotel. Then, head to the Avenue of Stars along Victoria Harbour. You can enjoy the view of the Hong Kong Island skyline and see the statues of famous Hong Kong movie stars.\n- Afternoon: Visit the Hong Kong Museum of Art and the Hong Kong Space Museum, which are both located in Tsim Sha Tsui. \n- Evening: Have dinner at a local restaurant in Tsim Sha Tsui. Then, watch the Symphony of Lights, a spectacular light - and - sound show on the buildings around Victoria Harbour.\n\n**Day 2: Hong Kong Disneyland**\n- Morning: Take public transportation to Hong Kong Disneyland. Spend the whole day enjoying the various rides, shows, and parades in the theme park. You can meet your favorite Disney characters here.\n- Afternoon: Have lunch and continue exploring different themed areas like Adventureland, Fantasyland, and Tomorrowland.\n- Evening: Watch the fireworks show at the end of the day before leaving the park.\n\n**Day 3: Central and Mid - levels**\n- Morning: Go to Central. Visit the Bank of China Tower and the HSBC Main Building, which are famous for their unique architecture. Then, take the Central - Mid - levels Escalator, the longest outdoor covered escalator system in the world. Along the way, you can explore the trendy shops and cafes in SoHo.\n- Afternoon: Have lunch in Central. You can also visit the Hong Kong Zoological and Botanical Gardens if you have time.\n- Evening: Have a farewell dinner in Central and then head to the airport for your departure.\n\nThis is just a basic plan, and you can adjust it according to your interests and the length of your stay.', 'think': 'The user requests a plan for a visit to HK. I first listed a 3 - day travel plan covering popular attractions in Hong Kong such as Victoria Harbour, Hong Kong Disneyland, Central, etc. No memory operation or tool is needed as the response can be generated based on general knowledge.'}
+13:56:33,498 root INFO Response: {'content': [{'type': 'think', 'content': 'The user requests a plan for a visit to HK. I first listed a 3 - day travel plan covering popular attractions in Hong Kong such as Victoria Harbour, Hong Kong Disneyland, Central, etc. No memory operation or tool is needed as the response can be generated based on general knowledge.'}, {'type': 'text', 'text': 'Here is a simple 3 - day plan for a visit to Hong Kong:\n\n**Day 1: Victoria Harbour and Tsim Sha Tsui**\n- Morning: Arrive at Hong Kong International Airport. Take the Airport Express to Tsim Sha Tsui. Check - in at your hotel. Then, head to the Avenue of Stars along Victoria Harbour. You can enjoy the view of the Hong Kong Island skyline and see the statues of famous Hong Kong movie stars.\n- Afternoon: Visit the Hong Kong Museum of Art and the Hong Kong Space Museum, which are both located in Tsim Sha Tsui. \n- Evening: Have dinner at a local restaurant in Tsim Sha Tsui. Then, watch the Symphony of Lights, a spectacular light - and - sound show on the buildings around Victoria Harbour.\n\n**Day 2: Hong Kong Disneyland**\n- Morning: Take public transportation to Hong Kong Disneyland. Spend the whole day enjoying the various rides, shows, and parades in the theme park. You can meet your favorite Disney characters here.\n- Afternoon: Have lunch and continue exploring different themed areas like Adventureland, Fantasyland, and Tomorrowland.\n- Evening: Watch the fireworks show at the end of the day before leaving the park.\n\n**Day 3: Central and Mid - levels**\n- Morning: Go to Central. Visit the Bank of China Tower and the HSBC Main Building, which are famous for their unique architecture. Then, take the Central - Mid - levels Escalator, the longest outdoor covered escalator system in the world. Along the way, you can explore the trendy shops and cafes in SoHo.\n- Afternoon: Have lunch in Central. You can also visit the Hong Kong Zoological and Botanical Gardens if you have time.\n- Evening: Have a farewell dinner in Central and then head to the airport for your departure.\n\nThis is just a basic plan, and you can adjust it according to your interests and the length of your stay.'}]}
+13:56:33,498 root INFO Task 1 updated successfully. Files extracted: 1
+13:56:33,498 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:56:33] "POST /api/chat HTTP/1.1" 200 -
+13:56:33,517 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:56:33] "GET /api/tasks HTTP/1.1" 200 -
+13:56:33,518 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:56:33] "GET /api/memory HTTP/1.1" 200 -
+13:56:33,520 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:56:33] "GET /api/memory/operations HTTP/1.1" 200 -
+13:56:33,521 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:56:33] "GET /api/tools HTTP/1.1" 200 -
+15:18:58,890 root INFO Client disconnected
+15:18:58,892 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 15:18:58] "GET /socket.io/?EIO=4&transport=websocket&sid=HrPVg7Eo6-nomCa6AAAG HTTP/1.1" 200 -
+15:18:58,899 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 15:18:58] "GET / HTTP/1.1" 200 -
+15:18:58,953 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 15:18:58] "GET /static/styles.css HTTP/1.1" 200 -
+15:19:00,566 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 15:19:00] "GET /static/app.jsx HTTP/1.1" 200 -
+15:19:00,792 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 15:19:00] "GET /socket.io/?EIO=4&transport=polling&t=PXAlysr HTTP/1.1" 200 -
+15:19:00,825 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 15:19:00] "POST /socket.io/?EIO=4&transport=polling&t=PXAlytM&sid=wUj5VZRrYApSJqYIAAAI HTTP/1.1" 200 -
+15:19:00,829 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 15:19:00] "GET /socket.io/?EIO=4&transport=polling&t=PXAlytN&sid=wUj5VZRrYApSJqYIAAAI HTTP/1.1" 200 -
+15:19:00,837 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 15:19:00] "GET /socket.io/?EIO=4&transport=polling&t=PXAlytW&sid=wUj5VZRrYApSJqYIAAAI HTTP/1.1" 200 -
+15:19:00,838 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 15:19:00] "[36mGET /static/icon.png HTTP/1.1[0m" 304 -
+15:19:02,875 root INFO Loaded 1 MCP server configurations
+15:19:03,557 root INFO Connected to MCP server: weather
+15:19:03,557 root INFO TaskManager is using client's provider.
+15:19:03,557 root INFO Memory is using the client's provider.
+15:19:03,557 root INFO Using provider: Doubao
+15:19:03,559 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 15:19:03] "POST /api/initialize HTTP/1.1" 200 -
+15:19:03,565 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 15:19:03] "GET /api/tasks HTTP/1.1" 200 -
+15:19:03,566 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 15:19:03] "GET /api/memory HTTP/1.1" 200 -
+15:19:03,567 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 15:19:03] "GET /api/memory/operations HTTP/1.1" 200 -
+15:19:03,569 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 15:19:03] "GET /api/tools HTTP/1.1" 200 -
+15:19:03,585 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 15:19:03] "GET /api/tasks/1/detailed HTTP/1.1" 200 -
+15:37:09,770 root ERROR Error during cleanup: Attempted to exit cancel scope in a different task than it was entered in

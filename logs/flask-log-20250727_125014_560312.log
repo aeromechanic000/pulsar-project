@@ -1,0 +1,27 @@
+12:50:14,576 werkzeug WARNING  * Debugger is active!
+12:50:14,581 werkzeug INFO  * Debugger PIN: 244-332-564
+12:50:15,484 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 12:50:15] "GET /socket.io/?EIO=4&transport=polling&t=PXADvqt HTTP/1.1" 200 -
+12:50:15,491 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 12:50:15] "POST /socket.io/?EIO=4&transport=polling&t=PXADvqz&sid=Ez8zZDJTu7lrRCwoAAAA HTTP/1.1" 200 -
+12:50:15,494 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 12:50:15] "GET /socket.io/?EIO=4&transport=polling&t=PXADvq-&sid=Ez8zZDJTu7lrRCwoAAAA HTTP/1.1" 200 -
+12:50:45,684 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 12:50:45] "GET /socket.io/?EIO=4&transport=websocket&sid=Ez8zZDJTu7lrRCwoAAAA HTTP/1.1" 200 -
+12:50:45,695 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 12:50:45] "GET / HTTP/1.1" 200 -
+12:50:47,423 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 12:50:47] "GET /static/app.jsx HTTP/1.1" 200 -
+12:50:47,615 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 12:50:47] "GET /socket.io/?EIO=4&transport=polling&t=PXAE1gy HTTP/1.1" 200 -
+12:50:47,648 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 12:50:47] "POST /socket.io/?EIO=4&transport=polling&t=PXAE1hU&sid=LE091CxXHQ_icvnTAAAC HTTP/1.1" 200 -
+12:50:47,652 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 12:50:47] "GET /socket.io/?EIO=4&transport=polling&t=PXAE1hV&sid=LE091CxXHQ_icvnTAAAC HTTP/1.1" 200 -
+12:50:47,655 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 12:50:47] "GET /socket.io/?EIO=4&transport=polling&t=PXAE1hb&sid=LE091CxXHQ_icvnTAAAC HTTP/1.1" 200 -
+12:50:49,767 asyncio DEBUG Using selector: KqueueSelector
+12:50:49,767 root INFO Loaded 1 MCP server configurations
+12:50:50,325 root INFO Connected to MCP server: weather
+12:50:50,325 root INFO TaskManager is using client's provider.
+12:50:50,325 root INFO Memory is using the client's provider.
+12:50:50,325 root INFO Using provider: Doubao
+12:50:50,327 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 12:50:50] "POST /api/initialize HTTP/1.1" 200 -
+12:50:50,336 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 12:50:50] "GET /api/tasks HTTP/1.1" 200 -
+12:50:50,337 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 12:50:50] "GET /api/memory HTTP/1.1" 200 -
+12:50:50,338 asyncio DEBUG Using selector: KqueueSelector
+12:50:50,339 root ERROR Error getting tools from weather: Event loop is closed
+12:50:50,339 asyncio DEBUG Using selector: KqueueSelector
+12:50:50,339 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 12:50:50] "GET /api/tools HTTP/1.1" 200 -
+12:50:50,340 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 12:50:50] "GET /api/memory/operations HTTP/1.1" 200 -
+12:55:50,480 werkzeug INFO  * Detected change in '/Volumes/Works/Projects/pulsar-project/client.py', reloading

@@ -1,0 +1,15 @@
+12:35:48,612 werkzeug INFO [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:9898
+ * Running on http://192.168.151.29:9898
+12:35:48,612 werkzeug INFO [33mPress CTRL+C to quit[0m
+12:35:48,613 werkzeug INFO  * Restarting with stat
+12:38:21,452 werkzeug INFO  * Restarting with stat
+12:38:35,422 werkzeug INFO  * Restarting with stat
+12:41:56,414 werkzeug INFO  * Restarting with stat
+12:50:08,737 werkzeug INFO  * Restarting with stat
+12:50:13,980 werkzeug INFO  * Restarting with stat
+12:55:50,582 werkzeug INFO  * Restarting with stat
+12:56:01,175 werkzeug INFO  * Restarting with stat
+12:56:19,568 werkzeug INFO  * Restarting with stat
+12:56:48,741 werkzeug INFO  * Restarting with stat

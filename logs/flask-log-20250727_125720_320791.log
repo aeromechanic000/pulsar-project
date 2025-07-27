@@ -1,0 +1,182 @@
+12:57:20,321 root INFO Starting Flask server on http://localhost:9898
+12:57:20,480 werkzeug INFO [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:9898
+ * Running on http://192.168.151.29:9898
+12:57:20,480 werkzeug INFO [33mPress CTRL+C to quit[0m
+12:57:20,487 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 12:57:20] "GET /socket.io/?EIO=4&transport=polling&t=PXAFXbY HTTP/1.1" 200 -
+12:57:20,494 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 12:57:20] "POST /socket.io/?EIO=4&transport=polling&t=PXAFXbf&sid=4JiQL2hNngc-BcPFAAAA HTTP/1.1" 200 -
+12:57:20,497 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 12:57:20] "GET /socket.io/?EIO=4&transport=polling&t=PXAFXbg&sid=4JiQL2hNngc-BcPFAAAA HTTP/1.1" 200 -
+12:57:25,939 root INFO Client disconnected
+12:57:25,939 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 12:57:25] "GET /socket.io/?EIO=4&transport=websocket&sid=4JiQL2hNngc-BcPFAAAA HTTP/1.1" 200 -
+12:57:25,954 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 12:57:25] "GET / HTTP/1.1" 200 -
+12:57:27,546 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 12:57:27] "[36mGET /static/app.jsx HTTP/1.1[0m" 304 -
+12:57:27,740 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 12:57:27] "GET /socket.io/?EIO=4&transport=polling&t=PXAFZMw HTTP/1.1" 200 -
+12:57:27,776 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 12:57:27] "POST /socket.io/?EIO=4&transport=polling&t=PXAFZNT&sid=eBkL3OeLu5JTPZCcAAAC HTTP/1.1" 200 -
+12:57:27,782 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 12:57:27] "GET /socket.io/?EIO=4&transport=polling&t=PXAFZNU&sid=eBkL3OeLu5JTPZCcAAAC HTTP/1.1" 200 -
+12:57:29,679 asyncio DEBUG Using selector: KqueueSelector
+12:57:30,237 root INFO Loaded 1 MCP server configurations
+12:57:30,681 root INFO Connected to MCP server: weather
+12:57:30,681 root INFO TaskManager is using client's provider.
+12:57:30,681 root INFO Memory is using the client's provider.
+12:57:30,681 root INFO Using provider: Doubao
+12:57:30,683 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 12:57:30] "POST /api/initialize HTTP/1.1" 200 -
+12:57:30,692 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 12:57:30] "GET /api/tasks HTTP/1.1" 200 -
+12:57:30,693 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 12:57:30] "GET /api/memory HTTP/1.1" 200 -
+12:57:30,694 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 12:57:30] "GET /api/memory/operations HTTP/1.1" 200 -
+12:57:30,696 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 12:57:30] "GET /api/tools HTTP/1.1" 200 -
+13:07:48,677 root INFO Client disconnected
+13:07:48,679 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:07:48] "GET /socket.io/?EIO=4&transport=websocket&sid=eBkL3OeLu5JTPZCcAAAC HTTP/1.1" 200 -
+13:07:48,685 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:07:48] "GET / HTTP/1.1" 200 -
+13:07:50,475 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:07:50] "[36mGET /static/app.jsx HTTP/1.1[0m" 304 -
+13:07:50,675 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:07:50] "GET /socket.io/?EIO=4&transport=polling&t=PXAHxSG HTTP/1.1" 200 -
+13:07:50,708 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:07:50] "POST /socket.io/?EIO=4&transport=polling&t=PXAHxSn&sid=dE9-lCjAH5KCZQLrAAAE HTTP/1.1" 200 -
+13:07:50,714 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:07:50] "GET /socket.io/?EIO=4&transport=polling&t=PXAHxSn.0&sid=dE9-lCjAH5KCZQLrAAAE HTTP/1.1" 200 -
+13:07:52,123 root INFO Loaded 1 MCP server configurations
+13:07:52,728 root INFO Connected to MCP server: weather
+13:07:52,728 root INFO TaskManager is using client's provider.
+13:07:52,728 root INFO Memory is using the client's provider.
+13:07:52,728 root INFO Using provider: Doubao
+13:07:52,730 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:07:52] "POST /api/initialize HTTP/1.1" 200 -
+13:07:52,735 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:07:52] "GET /api/tasks HTTP/1.1" 200 -
+13:07:52,736 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:07:52] "GET /api/memory HTTP/1.1" 200 -
+13:07:52,738 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:07:52] "GET /api/memory/operations HTTP/1.1" 200 -
+13:07:52,739 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:07:52] "GET /api/tools HTTP/1.1" 200 -
+13:11:11,265 root INFO Client disconnected
+13:11:11,266 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:11:11] "GET /socket.io/?EIO=4&transport=websocket&sid=dE9-lCjAH5KCZQLrAAAE HTTP/1.1" 200 -
+13:11:11,271 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:11:11] "GET / HTTP/1.1" 200 -
+13:11:13,89 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:11:13] "[36mGET /static/app.jsx HTTP/1.1[0m" 304 -
+13:11:13,208 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:11:13] "GET /socket.io/?EIO=4&transport=polling&t=PXAIius HTTP/1.1" 200 -
+13:11:13,229 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:11:13] "POST /socket.io/?EIO=4&transport=polling&t=PXAIiv9&sid=zK5_mxZjPM0MTcu1AAAG HTTP/1.1" 200 -
+13:11:13,232 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:11:13] "GET /socket.io/?EIO=4&transport=polling&t=PXAIiv9.0&sid=zK5_mxZjPM0MTcu1AAAG HTTP/1.1" 200 -
+13:11:15,53 root INFO Loaded 1 MCP server configurations
+13:11:15,642 root INFO Connected to MCP server: weather
+13:11:15,642 root INFO TaskManager is using client's provider.
+13:11:15,642 root INFO Memory is using the client's provider.
+13:11:15,643 root INFO Using provider: Doubao
+13:11:15,644 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:11:15] "POST /api/initialize HTTP/1.1" 200 -
+13:11:15,652 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:11:15] "GET /api/tasks HTTP/1.1" 200 -
+13:11:15,653 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:11:15] "GET /api/memory HTTP/1.1" 200 -
+13:11:15,655 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:11:15] "GET /api/memory/operations HTTP/1.1" 200 -
+13:11:15,656 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:11:15] "GET /api/tools HTTP/1.1" 200 -
+13:14:26,971 root INFO Client disconnected
+13:14:26,972 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:14:26] "GET /socket.io/?EIO=4&transport=websocket&sid=zK5_mxZjPM0MTcu1AAAG HTTP/1.1" 200 -
+13:14:26,978 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:14:26] "GET / HTTP/1.1" 200 -
+13:14:28,494 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:14:28] "GET /static/app.jsx HTTP/1.1" 200 -
+13:14:28,691 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:14:28] "GET /socket.io/?EIO=4&transport=polling&t=PXAJSdG HTTP/1.1" 200 -
+13:14:28,723 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:14:28] "POST /socket.io/?EIO=4&transport=polling&t=PXAJSdm&sid=yZ7L2QVLG3KuLx7UAAAI HTTP/1.1" 200 -
+13:14:28,726 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:14:28] "GET /socket.io/?EIO=4&transport=polling&t=PXAJSdn&sid=yZ7L2QVLG3KuLx7UAAAI HTTP/1.1" 200 -
+13:14:28,732 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:14:28] "GET /socket.io/?EIO=4&transport=polling&t=PXAJSdv&sid=yZ7L2QVLG3KuLx7UAAAI HTTP/1.1" 200 -
+13:14:30,264 root INFO Loaded 1 MCP server configurations
+13:14:30,859 root INFO Connected to MCP server: weather
+13:14:30,859 root INFO TaskManager is using client's provider.
+13:14:30,860 root INFO Memory is using the client's provider.
+13:14:30,860 root INFO Using provider: Doubao
+13:14:30,861 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:14:30] "POST /api/initialize HTTP/1.1" 200 -
+13:14:30,871 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:14:30] "GET /api/tasks HTTP/1.1" 200 -
+13:14:30,872 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:14:30] "GET /api/memory HTTP/1.1" 200 -
+13:14:30,874 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:14:30] "GET /api/memory/operations HTTP/1.1" 200 -
+13:14:30,875 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:14:30] "GET /api/tools HTTP/1.1" 200 -
+13:15:16,588 root INFO Get static_memory_text: 
+## Available Memory Operations:
+- add_memory_data: 'Add a key-value pair to the memory database.
+
+    Args:
+        key: A key for the data to add;
+        value: A string value;
+
+  Input schema: {"properties": {"key": {"title": "Key", "type": "string"}, "value": {"title": "Value", "type": "string"}}, "title": "AddMemoryDataArguments", "type": "object", "required": ["key", "value"]}
+13:15:16,589 root INFO Get static_task_text: 
+13:15:16,589 root INFO Get dynamic_memory_text: 
+13:15:16,589 root INFO Get dynamic_task_text: 
+13:15:16,593 root INFO Prompt: 
+I am an AI assistant, which is good at answer user's query from the conversations, based on the memory status and task status. In generating the response, I will consider to answer with four parts: 
+1. Think: analyze the context and think about what to do next.
+2. Text: the text response to the user's query.
+3. Memory Operation: if I need to perform a memory operation, I will return the operation name and parameters. Make sure a memroy operation is really necessary and not redundant and not repetitive. 
+4. Tool: if I need to use a tool, I will return the tool name and parameters. Make sure a memroy operation is really necessary and not redundant and not repetitive. 
+
+The result should be formatted in **JSON** dictionary and enclosed in **triple backticks (` ``` ` )**  without labels like 'json', 'css', or 'data'.
+- **Do not** generate redundant content other than the result in JSON format.
+- **Do not** use triple backticks anywhere else in your answer.
+- The JSON must include the following keys and values accordingly :
+    - 'text': A JSON String for the text response to the user's query.
+    - 'think': A JSON String for the description of the thinking process to response to the user's query.
+    - 'mem_op': ONlY USED when you need to perform a memory operation (from the available memory operations), the value is a dictionary with the operation name and parameters: 
+        - 'name': The name of the memory operation.
+        - 'args': A dictionary of arguments for the operation.
+    - 'tool': ONLY USED when you need to use a tool (from the available tools), the value is a dictionary with the tool name and parameters:
+        - 'name': The name of the tool to use.
+        - 'args': A dictionary of arguments for the tool.
+    
+
+## Static Memory:
+
+## Available Memory Operations:
+- add_memory_data: 'Add a key-value pair to the memory database.
+
+    Args:
+        key: A key for the data to add;
+        value: A string value;
+
+  Input schema: {"properties": {"key": {"title": "Key", "type": "string"}, "value": {"title": "Value", "type": "string"}}, "title": "AddMemoryDataArguments", "type": "object", "required": ["key", "value"]}
+
+## Available Tools:
+- get_alerts: 'Get weather alerts for a US state.
+
+    Args:
+        state: Two-letter US state code (e.g. CA, NY)
+    
+  Input schema: {"properties": {"state": {"title": "State", "type": "string"}}, "required": ["state"], "title": "get_alertsArguments", "type": "object"}
+- get_forecast: 'Get weather forecast for a location.
+
+    Args:
+        latitude: Latitude of the location
+        longitude: Longitude of the location
+    
+  Input schema: {"properties": {"latitude": {"title": "Latitude", "type": "number"}, "longitude": {"title": "Longitude", "type": "number"}}, "required": ["latitude", "longitude"], "title": "get_forecastArguments", "type": "object"}
+## Conversation History:
+
+User Query: hi
+
+Your Answer:
+
+13:15:20,11 root INFO Text response: ```
+{
+    "text": "Hello! How can I help you today?",
+    "think": "The user greeted with 'hi'. A simple and friendly greeting response is appropriate in this context, so I will reply with a basic hello and ask how I can assist.",
+    "mem_op": {},
+    "tool": {}
+}
+```
+13:15:20,21 root INFO Extracted data: {'text': 'Hello! How can I help you today?', 'think': "The user greeted with 'hi'. A simple and friendly greeting response is appropriate in this context, so I will reply with a basic hello and ask how I can assist.", 'mem_op': {}, 'tool': {}}
+13:15:20,21 root INFO Dict response: {'text': 'Hello! How can I help you today?', 'think': "The user greeted with 'hi'. A simple and friendly greeting response is appropriate in this context, so I will reply with a basic hello and ask how I can assist."}
+13:15:20,21 root INFO Response: {'content': [{'type': 'think', 'content': "The user greeted with 'hi'. A simple and friendly greeting response is appropriate in this context, so I will reply with a basic hello and ask how I can assist."}, {'type': 'text', 'text': 'Hello! How can I help you today?'}]}
+13:15:20,23 root INFO Task 1 updated successfully. Files extracted: 0
+13:15:20,24 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:15:20] "POST /api/chat HTTP/1.1" 200 -
+13:15:20,39 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:15:20] "GET /api/tasks HTTP/1.1" 200 -
+13:15:20,39 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:15:20] "GET /api/memory HTTP/1.1" 200 -
+13:15:20,42 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:15:20] "GET /api/memory/operations HTTP/1.1" 200 -
+13:15:20,45 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:15:20] "GET /api/tools HTTP/1.1" 200 -
+13:15:44,226 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:15:44] "POST /api/tasks/1/load HTTP/1.1" 200 -
+13:15:44,243 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:15:44] "GET /api/tasks HTTP/1.1" 200 -
+13:15:44,244 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:15:44] "GET /api/memory HTTP/1.1" 200 -
+13:15:44,248 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:15:44] "GET /api/memory/operations HTTP/1.1" 200 -
+13:15:44,250 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:15:44] "GET /api/tools HTTP/1.1" 200 -
+13:15:57,83 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:15:57] "GET /api/tasks HTTP/1.1" 200 -
+13:15:57,83 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:15:57] "GET /api/memory HTTP/1.1" 200 -
+13:15:57,85 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:15:57] "GET /api/memory/operations HTTP/1.1" 200 -
+13:15:57,88 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:15:57] "GET /api/tools HTTP/1.1" 200 -
+13:15:59,388 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:15:59] "GET /api/tasks HTTP/1.1" 200 -
+13:15:59,389 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:15:59] "GET /api/memory HTTP/1.1" 200 -
+13:15:59,391 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:15:59] "GET /api/memory/operations HTTP/1.1" 200 -
+13:15:59,393 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:15:59] "GET /api/tools HTTP/1.1" 200 -
+13:16:10,460 root INFO Client disconnected
+13:16:10,461 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:16:10] "GET /socket.io/?EIO=4&transport=websocket&sid=yZ7L2QVLG3KuLx7UAAAI HTTP/1.1" 200 -
+13:16:10,471 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:16:10] "GET / HTTP/1.1" 200 -
+13:16:11,901 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:16:11] "[36mGET /static/app.jsx HTTP/1.1[0m" 304 -
+13:16:12,22 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:16:12] "GET /socket.io/?EIO=4&transport=polling&t=PXAJrrq HTTP/1.1" 200 -
+13:16:12,44 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:16:12] "POST /socket.io/?EIO=4&transport=polling&t=PXAJrs8&sid=2NrYxxekEvYOznFJAAAK HTTP/1.1" 200 -
+13:16:12,47 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:16:12] "GET /socket.io/?EIO=4&transport=polling&t=PXAJrs8.0&sid=2NrYxxekEvYOznFJAAAK HTTP/1.1" 200 -
+13:16:12,51 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 13:16:12] "GET /socket.io/?EIO=4&transport=polling&t=PXAJrsH&sid=2NrYxxekEvYOznFJAAAK HTTP/1.1" 200 -
+13:16:56,425 root ERROR Error during cleanup: Attempted to exit cancel scope in a different task than it was entered in

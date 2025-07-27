@@ -1,0 +1,29 @@
+{
+   "provider" : {
+      "name" : "Doubao",
+      "base_url" : "https://ark.cn-beijing.volces.com/api/v3/", 
+      "model" : "doubao-1-5-pro-32k-250115",
+      "api_key" : "",
+      "env_name" : "DOUBAO_API_KEY"
+   },
+   "max_iters" : 5,
+   "memory" : {
+      "update_batch_size" : 5,
+      "max_topics" : 5,
+      "latest_record_num" : 5
+   },
+   "task" : {
+      "response_summary_limit" : 200
+   },
+   "mcpServers" : {
+      "weather": {
+         "command": "/opt/homebrew/bin/uv",
+         "args": [
+            "--directory",
+            "/Users/nil/Projects/pulsar-project/mcp_servers/weather",
+            "run",
+            "weather.py"
+         ]
+      } 
+   } 
+}

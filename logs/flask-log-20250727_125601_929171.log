@@ -1,0 +1,7 @@
+12:56:01,945 werkzeug WARNING  * Debugger is active!
+12:56:01,957 werkzeug INFO  * Debugger PIN: 244-332-564
+12:56:02,488 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 12:56:02] "GET /socket.io/?EIO=4&transport=polling&t=PXAFEYo HTTP/1.1" 200 -
+12:56:02,499 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 12:56:02] "POST /socket.io/?EIO=4&transport=polling&t=PXAFEYy&sid=3XbUsJkAdbSLvcwiAAAA HTTP/1.1" 200 -
+12:56:02,500 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 12:56:02] "GET /socket.io/?EIO=4&transport=polling&t=PXAFEYz&sid=3XbUsJkAdbSLvcwiAAAA HTTP/1.1" 200 -
+12:56:02,505 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 12:56:02] "GET /socket.io/?EIO=4&transport=polling&t=PXAFEZ6&sid=3XbUsJkAdbSLvcwiAAAA HTTP/1.1" 200 -
+12:56:19,485 werkzeug INFO  * Detected change in '/Volumes/Works/Projects/pulsar-project/client.py', reloading
