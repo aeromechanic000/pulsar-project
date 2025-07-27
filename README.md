@@ -1,4 +1,4 @@
-# Pulsar 🌌  
+# Pulsar Agent 🌌  
 *A self-evolving LLM agent framework for autonomous task exploration and memory-driven learning.*
 
 ---
@@ -43,6 +43,7 @@ We welcome collaboration, discussion, and ideas. Join us in the Minecraft AI Dis
 ## 📦 Installation
 
 ```bash
-git clone https://github.com/yourname/pulsar.git
-cd pulsar
-pip install -r requirements.txt
+git clone https://github.com/aeromechanic000/pulsar-project.git
+cd pulsar-project
+uv run client.py
+```
