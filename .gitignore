@@ -1,0 +1,9 @@
+.vercel
+_*
+._*
+__pycache__/*
+.venv/*
+.fslckout
+fossil_ignore.sh
+api/__pycache__/*
+logs/
