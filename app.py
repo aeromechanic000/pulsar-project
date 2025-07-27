@@ -1,10 +1,6 @@
-import os
-import sys
-import json
-import asyncio
-import logging
-import threading
-import time
+import os, sys, json, asyncio, logging, threading, time
+import signal, atexit
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from flask import Flask, request, jsonify, render_template, send_from_directory
 from flask_cors import CORS
@@ -23,26 +19,47 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 client_instance = None
 client_loop = None
 client_thread = None
+shutdown_event = None
 
 def run_client_loop():
     """Run the client's event loop in a separate thread"""
-    global client_loop
-    client_loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(client_loop)
+    global client_loop, shutdown_event
+    
     try:
-        client_loop.run_forever()
+        client_loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(client_loop)
+        
+        # Create a threading event for shutdown signaling
+        shutdown_event = threading.Event()
+        
+        # Simple approach: run forever until shutdown
+        async def loop_until_shutdown():
+            while not shutdown_event.is_set():
+                await asyncio.sleep(0.01)
+        
+        client_loop.run_until_complete(loop_until_shutdown())
+        
     except Exception as e:
         add_log(f"Client loop error: {e}", label="error")
     finally:
-        client_loop.close()
+        try:
+            if client_loop and not client_loop.is_closed():
+                client_loop.close()
+        except Exception:
+            pass
 
 def run_async_in_client_loop(coro):
     """Run async function in the client's event loop"""
     if client_loop is None or client_loop.is_closed():
         raise RuntimeError("Client loop is not running")
     
+    # Use asyncio.run_coroutine_threadsafe for cross-thread execution
     future = asyncio.run_coroutine_threadsafe(coro, client_loop)
-    return future.result(timeout=60)  # Increased timeout for safety
+    try:
+        return future.result(timeout=60)
+    except Exception as e:
+        add_log(f"Error running async function: {e}", label="error")
+        raise
 
 def ensure_client_loop():
     """Ensure the client event loop is running"""
@@ -116,10 +133,13 @@ def get_tasks():
         tasks_data = {}
         for task_id, task in client_instance.task_manager.tasks.items():
             tasks_data[task_id] = {
-                'id': task_id,
+                'id': task.task_id,
+                'type' : task.task_type,
+                'title': task.title,
                 'target': task.target,
                 'plan': task.plan,
                 'progress': task.progress,
+                'created_at': task.created_at,
                 'log_count': len(task.logs),
                 'is_working': task_id == client_instance.task_manager.working_task
             }
@@ -151,12 +171,52 @@ def get_task_detail(task_id):
             logs_data.append(log_dict)
         
         task_data = {
-            'id': task_id,
+            'id': task.task_id,
+            'type': task.task_type,
+            'title': task.title,
             'target': task.target,
             'plan': task.plan,
             'progress': task.progress,
+            'created_at': task.created_at,
             'logs': logs_data,
             'is_working': task_id == client_instance.task_manager.working_task
+        }
+        
+        return jsonify(task_data)
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/tasks/<int:task_id>/detailed', methods=['GET'])
+def get_task_detailed_info(task_id):
+    """Get comprehensive task information including all details and files"""
+    if not client_instance:
+        return jsonify({'error': 'Client not initialized'}), 400
+    
+    try:
+        if task_id not in client_instance.task_manager.tasks:
+            return jsonify({'error': 'Task not found'}), 404
+        
+        task = client_instance.task_manager.tasks[task_id]
+        
+        # Convert logs to serializable format with full file information
+        logs_data = []
+        for log in task.logs:
+            log_dict = log.to_dict()
+            logs_data.append(log_dict)
+        
+        task_data = {
+            'id': task.task_id,
+            'type': task.task_type,
+            'title': task.title,
+            'target': task.target,
+            'plan': task.plan,
+            'progress': task.progress,
+            'created_at': task.created_at,
+            'logs': logs_data,
+            'is_working': task_id == client_instance.task_manager.working_task,
+            'logs_count': len(task.logs),
+            'files_count': sum(len(log.files) for log in task.logs)
         }
         
         return jsonify(task_data)
@@ -282,40 +342,6 @@ def get_memory_details():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/tasks/<int:task_id>/detailed', methods=['GET'])
-def get_task_detailed_info(task_id):
-    """Get comprehensive task information including all details and files"""
-    if not client_instance:
-        return jsonify({'error': 'Client not initialized'}), 400
-    
-    try:
-        if task_id not in client_instance.task_manager.tasks:
-            return jsonify({'error': 'Task not found'}), 404
-        
-        task = client_instance.task_manager.tasks[task_id]
-        
-        # Convert logs to serializable format with full file information
-        logs_data = []
-        for log in task.logs:
-            log_dict = log.to_dict()
-            logs_data.append(log_dict)
-        
-        task_data = {
-            'id': task_id,
-            'target': task.target,
-            'plan': task.plan,
-            'progress': task.progress,
-            'logs': logs_data,
-            'is_working': task_id == client_instance.task_manager.working_task,
-            'logs_count': len(task.logs),
-            'files_count': sum(len(log.files) for log in task.logs)
-        }
-        
-        return jsonify(task_data)
-        
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
 @app.route('/api/chat', methods=['POST'])
 def process_chat():
     """Process a chat query"""
@@ -412,28 +438,40 @@ def handle_connect():
 def handle_disconnect():
     add_log('Client disconnected')
 
-# Clean shutdown handling
 def cleanup():
-    """Clean up resources on shutdown"""
-    global client_instance, client_loop
+    """Clean up resources on shutdown - simplified version"""
+    global shutdown_event, client_thread
     
-    try:
-        if client_instance:
-            if client_loop and not client_loop.is_closed():
-                run_async_in_client_loop(client_instance.cleanup())
-                add_log("Client cleaned up successfully")
-    except Exception as e:
-        add_log(f"Error during cleanup: {e}", label="error")
+    add_log("Starting cleanup process...")
     
-    try:
-        if client_loop and not client_loop.is_closed():
-            client_loop.call_soon_threadsafe(client_loop.stop)
-    except Exception as e:
-        add_log(f"Error stopping client loop: {e}", label="error")
+    # Signal shutdown to the event loop
+    if shutdown_event:
+        shutdown_event.set()
+    
+    # Wait for client thread to finish
+    if client_thread and client_thread.is_alive():
+        client_thread.join(timeout=1)  # Reduced timeout since loop is more responsive
+        if client_thread.is_alive():
+            add_log("Client thread did not shut down gracefully", label="warning")
+        else:
+            add_log("Client thread shut down gracefully")
+    
+    add_log("Cleanup completed")
+
+def signal_handler(signum, frame):
+    """Handle interrupt signals"""
+    add_log(f"Received signal {signum}, shutting down gracefully...")
+    cleanup()
+    sys.exit(0)
 
 # Register cleanup function
 import atexit
+
 atexit.register(cleanup)
+
+signal.signal(signal.SIGINT, signal_handler)
+signal.signal(signal.SIGTERM, signal_handler)
+
 
 # Create necessary directories
 os.makedirs('static', exist_ok=True)
@@ -456,7 +494,8 @@ if __name__ == '__main__':
         socketio.run(app, host='0.0.0.0', port=9898, debug=False, allow_unsafe_werkzeug=True)
     except KeyboardInterrupt:
         add_log("Server stopped by user")
-        cleanup()
     except Exception as e:
         add_log(f"Server error: {e}", label="error")
-        cleanup()
+    finally:
+        # Cleanup will be called by signal handler or atexit
+        pass

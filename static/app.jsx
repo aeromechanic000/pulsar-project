@@ -38,6 +38,25 @@ function App() {
     const [currentQuery, setCurrentQuery] = useState('');
     const [tools, setTools] = useState({});
     const [memoryOps, setMemoryOps] = useState({});
+    const [alert, setAlert] = useState({ isOpen: false, title: '', message: '', type: 'info' });
+    const [toast, setToast] = useState({ isVisible: false, title: '', message: '', type: 'info' });
+
+    // Alert helper functions
+    const showAlert = (title, message, type = 'info') => {
+        setAlert({ isOpen: true, title, message, type });
+    };
+
+    const closeAlert = () => {
+        setAlert({ isOpen: false, title: '', message: '', type: 'info' });
+    };
+
+    const showToast = (message, type = 'info', title = '') => {
+        setToast({ isVisible: true, title, message, type });
+    };
+
+    const closeToast = () => {
+        setToast({ isVisible: false, title: '', message: '', type: 'info' });
+    };
 
     // Initialize client
     const initializeClient = async () => {
@@ -47,7 +66,7 @@ function App() {
             setIsInitialized(true);
             await loadAllData();
         } catch (error) {
-            alert(`Initialization failed: ${error.message}`);
+            showAlert('Initialization Failed', error.message, 'error');
         }
         setLoading(false);
     };
@@ -133,7 +152,7 @@ function App() {
             await api.post('/tasks/new', { type });
             await loadAllData();
         } catch (error) {
-            alert(`Failed to create task: ${error.message}`);
+            showToast(`Failed to create task: ${error.message}`, 'error');
         }
     };
 
@@ -143,7 +162,8 @@ function App() {
             await api.post(`/tasks/${taskId}/load`);
             await loadAllData();
         } catch (error) {
-            alert(`Failed to load task: ${error.message}`);
+            showToast(`Failed to load task: ${error.message}`, 'error');
+
         }
     };
 
@@ -153,7 +173,7 @@ function App() {
             const memoryDetails = await api.get('/memory/details');
             setSelectedDetail({ type: 'memory', data: memoryDetails });
         } catch (error) {
-            alert(`Failed to load memory details: ${error.message}`);
+            showAlert('Memory Error', `Failed to load memory details: ${error.message}`, 'error');
         }
     };
 
@@ -219,6 +239,20 @@ function App() {
                     isOpen={!!selectedDetail}
                 />
             </div>
+            <AlertModal
+                isOpen={alert.isOpen}
+                onClose={closeAlert}
+                title={alert.title}
+                message={alert.message}
+                type={alert.type}
+            />
+            <Toast
+                isVisible={toast.isVisible}
+                onClose={closeToast}
+                title={toast.title}
+                message={toast.message}
+                type={toast.type}
+            />
         </div>
     );
 }
@@ -233,12 +267,11 @@ function InitializationScreen({ onInitialize, loading }) {
                         <i className="fas fa-robot text-2xl"></i>
                     </div>
                     <h1 className="text-3xl font-bold mb-2">Pulsar Agent</h1>
-                    <p className="text-white text-opacity-80">Playground</p>
                 </div>
                 
                 <div className="space-y-4">
                     <p className="text-white text-opacity-90">
-                        Initialize the client to start building, planning, and exploring with AI assistance.
+                        Initialize the playground to start exploring with the self-learning and evolving AI.
                     </p>
                     
                     <button
@@ -314,7 +347,7 @@ function TaskSidebar({ tasks, workingTaskId, selectedTaskId, onSelectTask, onLoa
                         className="flex-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover-lift"
                         title="Create Plan Task"
                     >
-                        <i className="fas fa-plus mr-2"></i>Plan
+                        <i className="fas fa-tasks mr-2"></i>Plan
                     </button>
                     <button
                         onClick={() => onCreateTask('research')}
@@ -369,7 +402,10 @@ function TaskCard({ task, isSelected, isWorking, onSelect, onLoad }) {
             
             <div className="flex justify-between items-start mb-3">
                 <div className="flex items-center space-x-2">
-                    <span className="font-semibold text-slate-800">Task {task.id}</span>
+                    <span className="font-semibold text-slate-800">{task.title || `Task ${task.id}`}</span>
+                    <span className="bg-slate-100 text-black-700 text-xs font-medium px-2 py-1 rounded-full">
+                       {task.type} 
+                    </span>
                     {isWorking && (
                         <span className="bg-emerald-100 text-emerald-700 text-xs font-medium px-2 py-1 rounded-full">
                             Active
@@ -395,14 +431,14 @@ function TaskCard({ task, isSelected, isWorking, onSelect, onLoad }) {
                         {task.target || 'No target set'}
                     </p>
                 </div>
-                
                 <div className="flex items-center justify-between text-xs text-slate-500">
                     <span className="flex items-center">
                         <i className="fas fa-list-ul mr-1"></i>
                         {task.logs_count || task.log_count || 0} logs
                     </span>
-                    <span className="bg-slate-100 px-2 py-1 rounded-full">
-                        ID: {task.id}
+                    <span className="flex items-center">
+                        <i className="fas fa-calendar mr-1"></i>
+                        {new Date(task.created_at).toLocaleDateString()}
                     </span>
                 </div>
             </div>
@@ -622,7 +658,17 @@ function TaskPanel({ task, selectedLogIndex, onSelectLog, onShowDetail }) {
         <div className="task-panel bg-white panel-border flex flex-col">
             <div className="p-6 border-b-2 border-slate-100">
                 <div className="flex items-center justify-between mb-2">
-                    <h2 className="text-lg font-semibold text-slate-800">Task {task.id}</h2>
+                    <div>
+                        <h2 className="text-lg font-semibold text-slate-800">{task.title}</h2>
+                        <div className="text-sm text-slate-500 space-x-2 flex items-center">
+                            <span>
+                                Task {task.id}
+                            </span> 
+                            <span className="bg-slate-100 text-black-700 text-xs font-medium px-2 py-1 rounded-full">
+                                {task.type} 
+                            </span> 
+                        </div>
+                    </div>
                     <div className="flex items-center space-x-2">
                         <button
                             onClick={() => onShowDetail({ type: 'task_details', task: task })}
@@ -711,9 +757,13 @@ function LogBlock({ log, index, isSelected, onSelect, onShowDetail }) {
                     {new Date(log.timestamp).toLocaleString()}
                 </span>
                 {log.error && (
-                    <span className="bg-red-100 text-red-700 text-xs px-2 py-1 rounded-full">
-                        Error
-                    </span>
+                    <div className="mb-2 p-2 bg-red-50 border border-red-200 rounded-lg">
+                        <div className="flex items-center mb-1">
+                            <i className="fas fa-exclamation-triangle text-red-500 mr-2"></i>
+                            <span className="text-xs font-medium text-red-700">Error Occurred</span>
+                        </div>
+                        <p className="text-xs text-red-600">{log.error}</p>
+                    </div>
                 )}
             </div>
             
@@ -729,20 +779,39 @@ function LogBlock({ log, index, isSelected, onSelect, onShowDetail }) {
             </div>
             
             {Object.keys(log.files || {}).length > 0 && (
-                <div className="flex flex-wrap gap-1 mb-2">
-                    {Object.entries(log.files).map(([filename, file]) => (
-                        <button
-                            key={filename}
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onShowDetail({ type: 'file', file: file, log_index: index });
-                            }}
-                            className="bg-emerald-100 hover:bg-emerald-200 text-emerald-700 text-xs px-2 py-1 rounded-lg transition-colors duration-200"
-                        >
-                            <i className="fas fa-file-code mr-1"></i>
-                            {filename}
-                        </button>
-                    ))}
+                <div className="mb-3">
+                    <p className="text-xs font-medium text-slate-600 mb-2">
+                        <i className="fas fa-file-code mr-1"></i>
+                        Extracted Files ({Object.keys(log.files).length})
+                    </p>
+                    <div className="flex flex-wrap gap-1">
+                        {Object.entries(log.files).map(([filename, file]) => (
+                            <button
+                                key={filename}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onShowDetail({ type: 'file', file: file, log_index: index });
+                                }}
+                                className={`text-xs px-2 py-1 rounded-lg transition-colors duration-200 ${
+                                    file.type === 'code' ? 'bg-blue-100 hover:bg-blue-200 text-blue-700' :
+                                    file.type === 'data' ? 'bg-purple-100 hover:bg-purple-200 text-purple-700' :
+                                    file.type === 'html' ? 'bg-orange-100 hover:bg-orange-200 text-orange-700' :
+                                    file.type === 'article' ? 'bg-green-100 hover:bg-green-200 text-green-700' :
+                                    'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                                }`}
+                                title={`${file.type} - ${file.size} chars`}
+                            >
+                                <i className={`mr-1 ${
+                                    file.type === 'code' ? 'fas fa-code' :
+                                    file.type === 'data' ? 'fas fa-database' :
+                                    file.type === 'html' ? 'fas fa-globe' :
+                                    file.type === 'article' ? 'fas fa-file-alt' :
+                                    'fas fa-file'
+                                }`}></i>
+                                {filename}
+                            </button>
+                        ))}
+                    </div>
                 </div>
             )}
             
@@ -1086,5 +1155,135 @@ function MemoryOpDetail({ content }) {
     }
 }
 
+// Alert Modal Component
+function AlertModal({ isOpen, onClose, title, message, type = 'info' }) {
+    if (!isOpen) return null;
+
+    const typeStyles = {
+        error: {
+            bg: 'bg-red-50',
+            border: 'border-red-200',
+            icon: 'fas fa-exclamation-triangle text-red-500',
+            titleColor: 'text-red-800',
+            messageColor: 'text-red-700',
+            buttonBg: 'bg-red-600 hover:bg-red-700'
+        },
+        success: {
+            bg: 'bg-green-50',
+            border: 'border-green-200', 
+            icon: 'fas fa-check-circle text-green-500',
+            titleColor: 'text-green-800',
+            messageColor: 'text-green-700',
+            buttonBg: 'bg-green-600 hover:bg-green-700'
+        },
+        warning: {
+            bg: 'bg-amber-50',
+            border: 'border-amber-200',
+            icon: 'fas fa-exclamation-circle text-amber-500',
+            titleColor: 'text-amber-800',
+            messageColor: 'text-amber-700',
+            buttonBg: 'bg-amber-600 hover:bg-amber-700'
+        },
+        info: {
+            bg: 'bg-blue-50',
+            border: 'border-blue-200',
+            icon: 'fas fa-info-circle text-blue-500',
+            titleColor: 'text-blue-800',
+            messageColor: 'text-blue-700',
+            buttonBg: 'bg-blue-600 hover:bg-blue-700'
+        }
+    };
+
+    const styles = typeStyles[type] || typeStyles.info;
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+            {/* Backdrop */}
+            <div 
+                className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm"
+                onClick={onClose}
+            ></div>
+            
+            {/* Modal */}
+            <div className="relative bg-white rounded-2xl shadow-xl border-2 border-slate-200 max-w-md w-full mx-4 animate-fade-in">
+                <div className={`${styles.bg} ${styles.border} rounded-t-2xl p-6 border-b-2`}>
+                    <div className="flex items-center">
+                        <i className={`${styles.icon} text-2xl mr-3`}></i>
+                        <h3 className={`text-lg font-semibold ${styles.titleColor}`}>
+                            {title}
+                        </h3>
+                    </div>
+                </div>
+                
+                <div className="p-6">
+                    <p className={`${styles.messageColor} leading-relaxed mb-6`}>
+                        {message}
+                    </p>
+                    
+                    <div className="flex justify-end">
+                        <button
+                            onClick={onClose}
+                            className={`${styles.buttonBg} text-white px-6 py-2 rounded-xl font-medium transition-all duration-200 hover-lift focus:outline-none focus:ring-2 focus:ring-offset-2`}
+                        >
+                            OK
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// Toast Notification Component
+function Toast({ isVisible, onClose, title, message, type = 'info', duration = 4000 }) {
+    useEffect(() => {
+        if (isVisible && duration > 0) {
+            const timer = setTimeout(onClose, duration);
+            return () => clearTimeout(timer);
+        }
+    }, [isVisible, duration, onClose]);
+
+    if (!isVisible) return null;
+
+    const typeStyles = {
+        error: 'bg-red-50 border-red-200 text-red-800',
+        success: 'bg-green-50 border-green-200 text-green-800',
+        warning: 'bg-amber-50 border-amber-200 text-amber-800',
+        info: 'bg-blue-50 border-blue-200 text-blue-800'
+    };
+
+    const iconStyles = {
+        error: 'fas fa-exclamation-triangle text-red-500',
+        success: 'fas fa-check-circle text-green-500',
+        warning: 'fas fa-exclamation-circle text-amber-500',
+        info: 'fas fa-info-circle text-blue-500'
+    };
+
+    return (
+        <div className="fixed top-20 right-6 z-50 animate-fade-in">
+            <div className={`${typeStyles[type]} border-2 rounded-xl p-4 shadow-lg max-w-sm backdrop-blur-sm`}>
+                <div className="flex items-start">
+                    <i className={`${iconStyles[type]} text-lg mr-3 mt-0.5 flex-shrink-0`}></i>
+                    <div className="flex-1 min-w-0">
+                        {title && (
+                            <p className="font-semibold text-sm mb-1">{title}</p>
+                        )}
+                        <p className="text-sm opacity-90">{message}</p>
+                    </div>
+                    <button
+                        onClick={onClose}
+                        className="ml-3 text-current opacity-50 hover:opacity-75 transition-opacity"
+                    >
+                        <i className="fas fa-times text-sm"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 // Render the app
-ReactDOM.render(<App />, document.getElementById('root'));
+const { createRoot } = ReactDOM;
+const container = document.getElementById('root');
+const root = createRoot(container);
+root.render(<App />);

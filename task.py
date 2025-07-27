@@ -1,4 +1,3 @@
-
 import re, aiohttp
 from typing import Optional, Dict, List, Any
 from dataclasses import dataclass
@@ -281,79 +280,106 @@ class FileExtractor:
         all_files.extend(cls.extract_articles(text))
         return all_files
 
-class Task(ABC) :
-    def __init__(self, client, provider) : 
+class Task(ABC):
+    def __init__(self, client, provider, task_id: int, task_type: str) :
         self.client, self.provider = client, provider
+        self.task_id, self.task_type = task_id, task_type
+        self.title = f"Task {task_id}"  # Default title
         self.target, self.plan, self.progress = "", "", ""
         self.logs = []
+        self.created_at = get_datetime_stamp()
     
-    async def get_static_context(self) : 
+    async def get_static_context(self):
         task_parts = [] 
         return "\n".join(task_parts)
 
-    async def get_dynamic_context(self) : 
+    async def get_dynamic_context(self):
         task_parts = [
+            f"Current Task ID: {self.task_id}",
+            f"Current Title: {self.title}",
             f"Current Target: {self.target or 'Not set'}",
             f"Current Plan: {self.plan or 'Not set'}",
             f"Current Progress: {self.progress or 'Not started'}",
         ] 
         return "\n".join(task_parts)
 
-class PlanTask(Task) :
+    def update_title_from_target(self):
+        """Extract a meaningful title from the target"""
+        if not self.target:
+            return
+        
+        # Simple title extraction - take first sentence or first 50 chars
+        target_clean = self.target.strip()
+        if '.' in target_clean:
+            title = target_clean.split('.')[0].strip()
+        else:
+            title = target_clean[:50].strip()
+        
+        # Remove common prefixes
+        prefixes_to_remove = ['create', 'build', 'develop', 'make', 'generate', 'write']
+        words = title.lower().split()
+        if words and words[0] in prefixes_to_remove:
+            title = ' '.join(title.split()[1:])
+        
+        # Capitalize and limit length
+        if title:
+            self.title = title[:60].strip().title()
 
-    async def get_static_context(self) : 
-        task_parts = [] 
+class PlanTask(Task):
+    async def get_static_context(self):
+        task_parts = []
         return "\n".join(task_parts)
 
-class ResearchTask(Task) :
+class ResearchTask(Task):
     pass
 
-class TaskManager :
-    def __init__(self, client) :
+class TaskManager:
+    def __init__(self, client):
         self.client = client
         self.provider = None
         self.config, self.tasks = {}, {} 
         self.working_task = None
+        self.next_task_id = 1  # Track next available task ID
     
-    def get_working_task(self) -> Optional[Task] :
-        if self.working_task in self.tasks.keys() :
+    def get_working_task(self) -> Optional[Task]:
+        if self.working_task in self.tasks.keys():
             return self.tasks[self.working_task]
         return None
     
-    def get_working_logs(self) -> List[Dict[str, Any]] : 
+    def get_working_logs(self) -> List[Dict[str, Any]]:
         task = self.get_working_task()
-        if task is not None :
+        if task is not None:
             return task.logs
         return []
     
-    def get_working_target(self) -> str :
+    def get_working_target(self) -> str:
         task = self.get_working_task()
-        if task is not None :
+        if task is not None:
             return task.target
         return ""
     
-    def get_working_plan(self) -> str :
+    def get_working_plan(self) -> str:
         task = self.get_working_task()
-        if task is not None :
+        if task is not None:
             return task.plan
         return ""
     
-    def get_working_progress(self) -> str :
+    def get_working_progress(self) -> str:
         task = self.get_working_task()
-        if task is not None :
+        if task is not None:
             return task.progress
         return ""
     
-    def get_working_task_id(self) -> int :
+    def get_working_task_id(self) -> int:
         return self.working_task if self.working_task is not None else -1
     
-    def load_config(self, config) :
+    def load_config(self, config):
         self.config = config
 
         provider_config = self.config.get("provider", {})
         provider_name = provider_config.get("name", None)
         provider_cls = get_provider(provider_name) 
-        if provider_cls is not None : 
+        if provider_cls is not None: 
             self.provider = provider_cls(provider_config)
             add_log(f"TaskManager is using provider: {provider_name}")
         else:
@@ -362,37 +388,40 @@ class TaskManager :
 
         self.new_task()
     
-    def new_task(self, task_type : str = "plan") -> int :
-        task_id = -1
-        if task_type == "plan" : 
-            task = PlanTask(self.client, self.provider)
-        elif task_type == "research" : 
-            task = ResearchTask(self.client, self.provider)
-        else :
-            return task_id
+    def new_task(self, task_type: str = "plan") -> int:
+        task_id = self.next_task_id
+        
+        if task_type == "plan":
+            task = PlanTask(self.client, self.provider, task_id, "plan")
+        elif task_type == "research":
+            task = ResearchTask(self.client, self.provider, task_id, "research")
+        else:
+            return -1
 
-        task_id = len(self.tasks) + 1
         self.tasks[task_id] = task
         self.working_task = task_id
+        self.next_task_id += 1
 
+        add_log(f"Created new {task_type} task with ID: {task_id}")
         return task_id
     
-    def load_task(self, task_id : int) -> Optional[Task] :
-        if task_id in self.tasks.keys() :
+    def load_task(self, task_id: int) -> bool:
+        if task_id in self.tasks.keys():
             self.working_task = task_id
-            return self.tasks[task_id]
-        return None
+            add_log(f"Loaded task with ID: {task_id}")
+            return True
+        return False
     
-    async def get_static_context(self) -> str :
+    async def get_static_context(self) -> str:
         working_task = self.get_working_task()
-        if working_task is None :
-            return working_task.get_static_context() 
+        if working_task is not None:
+            return await working_task.get_static_context()
         return ""
 
-    async def get_dynamic_context(self) -> str :
+    async def get_dynamic_context(self) -> str:
         working_task = self.get_working_task()
-        if working_task is None :
-            return working_task.get_dynamic_context() 
+        if working_task is not None:
+            return await working_task.get_dynamic_context()
         return ""
         
     async def update(self, query, response):
@@ -433,6 +462,8 @@ class TaskManager :
         # Build prompt based on current task state
         prompt_parts = [
             "Analyze the following user query and assistant response to update the task information.",
+            f"Current Task ID: {current_task.task_id}",
+            f"Current Title: {current_task.title}",
             f"Current Target: {current_task.target or 'Not set'}",
             f"Current Plan: {current_task.plan or 'Not set'}",
             f"Current Progress: {current_task.progress or 'Not started'}",
@@ -449,27 +480,30 @@ class TaskManager :
                 "\nThe task target is not set. Please:",
                 "1. Identify the main objective or goal from the conversation",
                 "2. Set a clear, specific target",
-                "3. Create an initial plan with key steps",
-                "4. Set initial progress status"
+                "3. Extract a short, meaningful title for this task (max 60 characters)",
+                "4. Create an initial plan with key steps",
+                "5. Set initial progress status"
             ])
         else:
             # Update existing task
             prompt_parts.extend([
                 "\nThe task already has a target. Please:",
                 "1. Keep the target unless it needs significant modification", 
-                "2. Update the plan based on new information or progress",
-                "3. Update progress to reflect current status",
-                "4. Add any new insights or obstacles discovered"
+                "2. Update the title if the target has changed significantly",
+                "3. Update the plan based on new information or progress",
+                "4. Update progress to reflect current status",
+                "5. Add any new insights or obstacles discovered"
             ])
         
         prompt_parts.append("""
-    Please respond in JSON format with:
-    - "target": Clear statement of the main objective
-    - "plan": Detailed plan with numbered steps
-    - "progress": Current progress description
-    - "logs": Array of new log entries about what happened
+Please respond in JSON format with:
+- "target": Clear statement of the main objective
+- "title": Short, descriptive title for the task (max 60 characters)
+- "plan": Detailed plan with numbered steps
+- "progress": Current progress description
+- "logs": Array of new log entries about what happened
 
-    Format your response as JSON only, enclosed in triple backticks.""")
+Format your response as JSON only, enclosed in triple backticks.""")
         
         prompt = "\n".join(prompt_parts)
         
@@ -486,6 +520,15 @@ class TaskManager :
                     current_task.target = str(data["target"])
                     log_record.add_entry(f"Target updated: {current_task.target}")
                     add_log(f"Task target updated: {current_task.target}")
+                    
+                    # Auto-update title when target changes
+                    current_task.update_title_from_target()
+                
+                # Update title if provided
+                if "title" in data and data["title"]:
+                    current_task.title = str(data["title"])[:60]  # Limit title length
+                    log_record.add_entry(f"Title updated: {current_task.title}")
+                    add_log(f"Task title updated: {current_task.title}")
                 
                 if "plan" in data and data["plan"]:
                     current_task.plan = str(data["plan"])
@@ -504,6 +547,7 @@ class TaskManager :
                 # Add metadata about the update
                 log_record.metadata.update({
                     "target_updated": "target" in data,
+                    "title_updated": "title" in data,
                     "plan_updated": "plan" in data,
                     "progress_updated": "progress" in data,
                     "files_extracted": len(log_record.files),
