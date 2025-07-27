@@ -1,7 +1,0 @@
-19:40:31,110 asyncio DEBUG Using selector: KqueueSelector
-19:40:31,111 root INFO Usage: python client.py <config_json_path>
-19:40:31,111 root INFO Example: python client.py configs.json
-19:40:31,111 root INFO Using configs: configs.json
-19:40:31,111 root INFO Loaded 1 server configurations
-19:40:31,348 root INFO Connected to server: weather
-19:40:31,348 root INFO Using provider: Doubao

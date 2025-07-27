@@ -1,6 +1,0 @@
-12:35:45,210 werkzeug WARNING  * Debugger is active!
-12:35:45,214 werkzeug INFO  * Debugger PIN: 244-332-564
-12:35:45,528 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 12:35:45] "GET /socket.io/?EIO=4&transport=polling&t=PXAAbRq HTTP/1.1" 200 -
-12:35:45,535 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 12:35:45] "POST /socket.io/?EIO=4&transport=polling&t=PXAAbRv&sid=zXxriFf9evTcVUrgAAAA HTTP/1.1" 200 -
-12:35:45,536 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 12:35:45] "GET /socket.io/?EIO=4&transport=polling&t=PXAAbRw&sid=zXxriFf9evTcVUrgAAAA HTTP/1.1" 200 -
-12:35:45,541 werkzeug INFO 127.0.0.1 - - [27/Jul/2025 12:35:45] "GET /socket.io/?EIO=4&transport=polling&t=PXAAbS3&sid=zXxriFf9evTcVUrgAAAA HTTP/1.1" 200 -
