@@ -204,7 +204,7 @@ I am an AI assistant, which is good at answer user's query from the conversation
 3. Memory Operation: if I need to perform a memory operation, I will return the operation name and parameters. Make sure a memroy operation is really necessary and not redundant and not repetitive. 
 4. Tool: if I need to use a tool, I will return the tool name and parameters. Make sure a memroy operation is really necessary and not redundant and not repetitive. 
 
-Furthermore, you have to explicitly indicate if you have finished the generation of response, or need to perform more steps or stop and wait for user's next query. This is important if you need multiple steps to answer current query well. But be careful, if you are not sure what to do next, you should leave the decision to the user.
+Furthermore, you have to explicitly indicate if you have finished the generation of response, or need to perform more steps or stop and wait for user's next query. This is important if you need multiple steps to answer current query well. But be careful, if you are not sure what to do next, you should leave the decision to the user. MAKE SURE don't set 'finished' to true, if you are still working on preparing the final response.
 
 The result should be formatted in **JSON** dictionary and enclosed in **triple backticks (` ``` ` )**  without labels like 'json', 'css', or 'data'.
 - **Do not** generate redundant content other than the result in JSON format.
@@ -219,7 +219,7 @@ The result should be formatted in **JSON** dictionary and enclosed in **triple b
         - 'name': The name of the tool to use.
         - 'args': A dictionary of arguments for the tool.
     - 'finished': A JSON bool value indicating if your actions are finished, set 'true' to stop processing and send response to the user; set 'false' to continue the actions. When you used a tool or you need more steps to collect information to complete the response, you should set 'finished' to 'false'.
-    ''']
+''']
 
         common_sense_text = await self.get_common_sense_context()
         add_log(f"Get common_sense_text: {common_sense_text}", label="log", print = False)
@@ -314,13 +314,15 @@ The result should be formatted in **JSON** dictionary and enclosed in **triple b
 
             for content in response["content"]:
                 if content["type"] == "text":
+                    add_log("Process text resonse", print = False)
                     response_text = content["text"]
                     self.messages.append({
                         "role" : "assistant", 
                         "content" : response_text,
                     })
                 
-                if content["type"] == "think":
+                elif content["type"] == "think":
+                    add_log("Process think response", print = False)
                     response_text = content["content"]
                     self.messages.append({
                         "role" : "assistant", 
@@ -328,6 +330,7 @@ The result should be formatted in **JSON** dictionary and enclosed in **triple b
                     })
 
                 elif content["type"] == "mem_op":
+                    add_log("Process memory operation response", print = False)
                     need_next_interation = True 
                     op_name = content["name"]
                     op_args = content["args"]
@@ -358,12 +361,14 @@ The result should be formatted in **JSON** dictionary and enclosed in **triple b
                         
                     except Exception as e:
                         error_msg = f"Error calling tool {op_name}: {str(e)}"
+                        add_log(error_msg, label = "error")
                         self.messages.append({
                             "role": "assistant",
                             "content": error_msg,
                         })
 
                 elif content["type"] == "tool":
+                    add_log("Process tool response", print = False)
                     need_next_interation = True 
                     tool_name = content["name"]
                     tool_args = content["args"]
@@ -392,6 +397,7 @@ The result should be formatted in **JSON** dictionary and enclosed in **triple b
                         
                     except Exception as e:
                         error_msg = f"Error calling tool {tool_name}: {str(e)}"
+                        add_log(error_msg, label = "error")
                         self.messages.append({
                             "role": "assistant",
                             "content": error_msg,

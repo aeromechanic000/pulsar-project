@@ -1,7 +1,10 @@
 {
    "provider" : {
-      "name" : "Ollama",
-      "model" : "llama3.2"
+      "name" : "Doubao",
+      "base_url" : "https://ark.cn-beijing.volces.com/api/v3/", 
+      "model" : "doubao-1-5-pro-32k-250115",
+      "api_key" : "",
+      "env_name" : "DOUBAO_API_KEY"
    },
    "max_iters" : 5,
    "memory" : {

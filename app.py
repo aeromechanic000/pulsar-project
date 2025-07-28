@@ -56,7 +56,7 @@ def run_async_in_client_loop(coro):
     # Use asyncio.run_coroutine_threadsafe for cross-thread execution
     future = asyncio.run_coroutine_threadsafe(coro, client_loop)
     try:
-        return future.result(timeout=60)
+        return future.result(timeout=180)
     except Exception as e:
         add_log(f"Error running async function: {e}", label="error")
         raise

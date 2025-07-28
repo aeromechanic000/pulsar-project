@@ -132,7 +132,7 @@ class TaskLogRecord:
 
 class FileExtractor:
     """Utility class for extracting different types of content from text"""
-    def __init__(self, provider=None):
+    def __init__(self, provider = None):
         self.provider = provider
     
     @staticmethod
@@ -141,18 +141,9 @@ class FileExtractor:
         extension_map = {
             'markdown': 'md', 
             'text': 'txt',
-            'novel': 'md',
             'plan': 'md',
             'note': 'txt',
-            'story': 'md',
             'article': 'md',
-            'recipe': 'md',
-            'tutorial': 'md',
-            'guide': 'md',
-            'documentation': 'md',
-            'letter': 'txt',
-            'email': 'txt',
-            'report': 'md'
         }
         return extension_map.get(content_type.lower(), 'txt')
     
@@ -176,7 +167,7 @@ Look for content like:
 For each piece you identify, provide:
 - start_marker: A unique phrase from the beginning of the content (max 50 chars)
 - end_marker: A unique phrase from the end of the content (max 50 chars) 
-- content_type: The type of content (novel, plan, note, article, recipe, etc.)
+- content_type: The type of content (plan, note, article, markdown, text, etc.)
 - title: A descriptive title for the file
 - description: Brief description of what this content contains
 
@@ -184,29 +175,29 @@ Only identify content that:
 1. Is substantial (more than 100 characters)
 2. Forms a coherent, standalone piece
 3. Would benefit from being in a separate file
+4. Make sure the identified content is consistent as an independent file, without any explaination about the generation, and irrelevant messages.
 
 Text to analyze:
 {text}
 
-Respond in JSON format with an array of objects:
-[
-{{
-    "start_marker": "beginning phrase...",
-    "end_marker": "ending phrase...",
-    "content_type": "novel",
-    "title": "My Story Title",
-    "description": "A short story about..."
-}}
-]
-    """
+The result should be formatted in **JSON** dictionary and enclosed in **triple backticks (` ``` ` )**  without labels like 'json', 'css', or 'data'.
+- **Do not** generate redundant content other than the result in JSON format.
+- **Do not** use triple backticks anywhere else in your answer.
+- The JSON must include the following keys and values accordingly :
+    - 'files' : A JSON List containing the configuration for the identified files, for each item, it is a JSON dictionary with following keys:
+        - 'start_marker': A JSON String for the beginning phrase....
+        - 'end_marker': A JSON ending phrase..."
+        - 'content_type' : A JSON String to descript the type of the writing
+        - 'title': A JSON String for the title of the writing
+        - 'description': A JSON String to describe the writing content in short
+"""
         
         try:
             response = await self.provider.generate_response(prompt)
             from utils import split_content_and_json
             content, data = split_content_and_json(response)
-            
-            if isinstance(data, list):
-                return data
+            if isinstance(data, dict) and isinstance(data.get("files", None), list) :
+                return data["files"]
             return []
         except Exception as e:
             add_log(f"Error in LLM content analysis: {e}", label="error")
@@ -214,11 +205,14 @@ Respond in JSON format with an array of objects:
 
     async def extract_llm_identified_content(self, text: str) -> List[ExtractedFile]:
         """Extract content identified by LLM analysis"""
-        if not self.provider:
+        if not self.provider :
+            add_log(f"A valid provider is required for FileExtractor to itentify file content with LLM", label = "error")
             return []
         
         files = []
         identified_content = await self.analyze_content_with_llm(text)
+
+        add_log(f"File content identified by LLM: {identified_content}", print = False)
         
         for item in identified_content:
             try:
@@ -230,6 +224,7 @@ Respond in JSON format with an array of objects:
                 
                 # Find content between markers
                 content = self._extract_content_between_markers(text, start_marker, end_marker)
+                add_log(f"File content between markers '{start_marker}' and '{end_marker}': {content}", print = False)
                 
                 if content and len(content.strip()) > 100:  # Minimum content length
                     # Generate filename
@@ -284,19 +279,11 @@ Respond in JSON format with an array of objects:
             add_log(f"Error extracting content between markers: {e}", label="error")
             return ""
 
-    @classmethod
-    async def extract_all_content(cls, text: str, provider=None) -> List[ExtractedFile]:
+    async def extract_all_content(self, text: str) -> List[ExtractedFile]:
         """Extract all types of content from text"""
-        extractor = cls(provider)
-        
-        all_files = []
-        
-        # LLM-powered extraction (if provider available)
-        if provider:
-            llm_files = await extractor.extract_llm_identified_content(text)
-            all_files.extend(llm_files)
-        
-        return all_files
+        add_log(f"Extracting files...")
+        files = await self.extract_llm_identified_content(text)
+        return files
 
 class Task(ABC):
     def __init__(self, client, provider, task_id: int, task_type: str) :
@@ -424,7 +411,7 @@ class TaskManager:
                     } for name, task in self.tasks.items()
                 }
                 json.dump(data, f, indent=4)
-            add_log("Task saved successfully.")
+            add_log("Task saved successfully.", label = "success")
         except Exception as e:
             add_log(f"Error saving task: {e}", label="error") 
     
@@ -519,6 +506,7 @@ class TaskManager:
         # Extract file content from response
         try:
             extracted_files = await self.file_extractor.extract_all_content(response_text)
+            add_log(f"Extracted files: {len(extracted_files)}")
 
             # Add extracted files to log record
             for file_obj in extracted_files:
@@ -630,7 +618,7 @@ Format your response as JSON only, enclosed in triple backticks.""")
             add_log(f"Trimmed task logs to {max_logs} entries")
         
         files_count = len(log_record.files)
-        add_log(f"Task {self.working_task} updated successfully. Files extracted: {files_count}")
+        add_log(f"Task {self.working_task} updated successfully. Files extracted: {files_count}", label = "success")
         await self.save()
 
     

@@ -355,6 +355,7 @@ function App() {
                     detail={selectedDetail}
                     onClose={() => setSelectedDetail(null)}
                     isOpen={!!selectedDetail}
+                    onShowDetail={setSelectedDetail}
                 />
             </div>
             <StatusBar message={statusMessage} type={statusType} />
@@ -681,13 +682,12 @@ function ChatArea({ messages, currentQuery, onQueryChange, onSendMessage, onShow
     );
 }
 
-// Chat Message Component (unchanged)
 function ChatMessage({ message, onShowDetail }) {
     if (message.role === 'user') {
         return (
             <div className="flex justify-end animate-fade-in">
                 <div className="bg-indigo-500 text-white p-4 rounded-2xl rounded-br-lg max-w-2xl shadow-sm">
-                    <p className="whitespace-pre-wrap">{message.content}</p>
+                    <MarkdownContent content={message.content} className="text-white markdown-content-light" />
                     <div className="text-xs text-indigo-100 mt-2 text-right">
                         {new Date(message.timestamp).toLocaleTimeString()}
                     </div>
@@ -701,19 +701,23 @@ function ChatMessage({ message, onShowDetail }) {
             <div className="flex justify-center animate-fade-in">
                 <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-xl text-sm max-w-lg">
                     <i className="fas fa-exclamation-triangle mr-2"></i>
-                    {message.content}
+                    <MarkdownContent content={message.content} className="inline" />
                 </div>
             </div>
         );
     }
-
+    
     // Assistant message with complex content
     return (
         <div className="flex justify-start animate-fade-in">
             <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl rounded-bl-lg max-w-2xl space-y-3 shadow-sm">
                 {message.content.map((item, index) => {
                     if (typeof item === 'string') {
-                        return <p key={index} className="whitespace-pre-wrap text-slate-800">{item}</p>;
+                        return (
+                            <div key={index} className="text-slate-800">
+                                <MarkdownContent content={item} />
+                            </div>
+                        );
                     }
 
                     if (item.role === 'assistant') {
@@ -725,16 +729,15 @@ function ChatMessage({ message, onShowDetail }) {
                                 <button
                                     key={index}
                                     onClick={() => onShowDetail({ type: 'think', content: content })}
-                                    className="w-full bg-slate-50 hover:bg-black-100 border border-gray-200 text-gray-700 p-3 rounded-xl text-sm transition-all duration-200 hover-lift text-left"
+                                    className="w-full bg-slate-50 hover:bg-slate-100 border border-gray-200 text-gray-700 p-3 rounded-xl text-sm transition-all duration-200 hover-lift text-left"
                                 >
-                                    <i className="fas fa-tools mr-2"></i>
+                                    <i className="fas fa-lightbulb mr-2"></i>
                                     <span className="font-medium">Think</span>
-                                    <span className="block text-xs text-gray-900 mt-1">Click to view details</span>
+                                    <span className="block text-xs text-gray-600 mt-1">Click to view details</span>
                                 </button>
                             );
                         }
 
-                        // Handle different content types
                         if (content.includes('[Tool Called]')) {
                             return (
                                 <button
@@ -763,10 +766,18 @@ function ChatMessage({ message, onShowDetail }) {
                             );
                         }
                         
-                        return <p key={index} className="text-slate-800 whitespace-pre-wrap">{content}</p>;
+                        return (
+                            <div key={index} className="text-slate-800">
+                                <MarkdownContent content={content} />
+                            </div>
+                        );
                     }
 
-                    return <p key={index} className="text-slate-600 text-sm font-mono">{JSON.stringify(item)}</p>;
+                    return (
+                        <div key={index} className="text-slate-600 text-sm font-mono bg-slate-100 p-2 rounded">
+                            <MarkdownContent content={JSON.stringify(item, null, 2)} />
+                        </div>
+                    );
                 })}
                 
                 <div className="text-xs text-slate-400 text-right">
@@ -798,7 +809,7 @@ function TaskPanel({ task, selectedLogIndex, onSelectLog, onShowDetail }) {
             <div className="p-6 border-b-2 border-slate-100">
                 <div className="flex items-center justify-between mb-2">
                     <div>
-                        <h2 className="text-lg font-semibold text-slate-800">{truncate_string(task.title, 20)}</h2>
+                        <h2 className="text-lg font-semibold text-slate-800">{truncate_string(task.title, 16)}</h2>
                         <div className="text-sm text-slate-500 space-x-2 flex items-center">
                             <span>Task {task.id}</span> 
                             <span className="bg-slate-100 text-black-700 text-xs font-medium px-2 py-1 rounded-full">
@@ -901,6 +912,128 @@ function TaskField({ label, value, icon, onClick }) {
     );
 }
 
+// Enhanced Markdown Content Component with theme support
+function MarkdownContent({ content, className = "" }) {
+    const { useEffect, useRef, useState } = React;
+    const contentRef = useRef(null);
+    const [isLibrariesReady, setIsLibrariesReady] = useState(false);
+
+    // Check if libraries are loaded
+    useEffect(() => {
+        const checkLibraries = () => {
+            if (typeof marked !== 'undefined' && typeof DOMPurify !== 'undefined') {
+                setIsLibrariesReady(true);
+                return true;
+            }
+            return false;
+        };
+
+        // Check immediately
+        if (checkLibraries()) {
+            return;
+        }
+
+        // If not ready, poll every 100ms for up to 5 seconds
+        const maxAttempts = 50;
+        let attempts = 0;
+        const interval = setInterval(() => {
+            attempts++;
+            if (checkLibraries() || attempts >= maxAttempts) {
+                clearInterval(interval);
+            }
+        }, 100);
+
+        return () => clearInterval(interval);
+    }, []);
+
+    useEffect(() => {
+        if (!contentRef.current || !isLibrariesReady || !content) return;
+
+        try {
+            // Configure marked options for better rendering
+            if (typeof marked.setOptions === 'function') {
+                marked.setOptions({
+                    breaks: true,
+                    gfm: true,
+                    headerIds: false,
+                    sanitize: false,
+                    smartLists: true,
+                    smartypants: false
+                });
+            }
+
+            // Parse markdown and sanitize HTML
+            const htmlContent = marked.parse ? marked.parse(content) : marked(content);
+            const cleanHTML = DOMPurify.sanitize(htmlContent, {
+                ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 
+                              'ul', 'ol', 'li', 'blockquote', 'code', 'pre', 'a', 'table', 'thead', 
+                              'tbody', 'tr', 'td', 'th', 'hr', 'img'],
+                ALLOWED_ATTR: ['href', 'src', 'alt', 'title', 'class', 'data-lang']
+            });
+            
+            contentRef.current.innerHTML = cleanHTML;
+
+            // Add syntax highlighting classes to code blocks
+            const codeBlocks = contentRef.current.querySelectorAll('pre code');
+            codeBlocks.forEach(block => {
+                const text = block.textContent;
+                let language = '';
+                
+                // Simple language detection
+                if (text.includes('function') || text.includes('const') || text.includes('let') || text.includes('var')) {
+                    language = 'javascript';
+                } else if (text.includes('def ') || text.includes('import ') || text.includes('print(')) {
+                    language = 'python';
+                } else if (text.startsWith('{') && text.includes('"')) {
+                    language = 'json';
+                } else if (text.includes('$') || text.includes('cd ') || text.includes('ls ') || text.includes('#!/bin/')) {
+                    language = 'bash';
+                } else if (text.includes('<html>') || text.includes('<!DOCTYPE') || text.includes('<div>')) {
+                    language = 'html';
+                } else if (text.includes('SELECT') || text.includes('FROM') || text.includes('WHERE')) {
+                    language = 'sql';
+                }
+                
+                if (language) {
+                    block.parentElement.setAttribute('data-lang', language);
+                    block.parentElement.classList.add(`lang-${language}`);
+                }
+            });
+
+            // Process tables for better styling
+            const tables = contentRef.current.querySelectorAll('table');
+            tables.forEach(table => {
+                table.classList.add('markdown-table');
+            });
+
+        } catch (error) {
+            console.error('Markdown rendering error:', error);
+            // Fallback to plain text with basic line breaks and proper color
+            const isLightTheme = className.includes('markdown-content-light');
+            const textColor = isLightTheme ? 'color: #ffffff;' : 'color: #374151;';
+            contentRef.current.innerHTML = `<div style="${textColor}">${content.replace(/\n/g, '<br>')}</div>`;
+        }
+    }, [content, isLibrariesReady, className]);
+
+    // Show loading state or fallback
+    if (!isLibrariesReady) {
+        const isLightTheme = className.includes('markdown-content-light');
+        const textColor = isLightTheme ? '#ffffff' : '#374151';
+        return (
+            <div className={`whitespace-pre-wrap ${className}`} style={{ color: textColor }}>
+                {content}
+            </div>
+        );
+    }
+
+    return (
+        <div 
+            ref={contentRef}
+            className={`markdown-content ${className}`}
+        />
+    );
+}
+
 // Log Block Component (unchanged)
 function LogBlock({ log, index, isSelected, onSelect, onShowDetail }) {
     return (
@@ -915,7 +1048,20 @@ function LogBlock({ log, index, isSelected, onSelect, onShowDetail }) {
                 <span className="text-xs font-medium text-slate-500">
                     {new Date(log.timestamp).toLocaleString()}
                 </span>
-                <span className="text-xs text-slate-500">#{index + 1}</span>
+                <div className="flex items-center space-x-2">
+                    <span className="text-xs text-slate-500">#{index + 1}</span>
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onShowDetail({ type: 'log_detail', log: log, log_index: index });
+                        }}
+                        className="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-2 py-1 rounded text-xs font-medium transition-all duration-200"
+                        title="View Full Log Details"
+                    >
+                        <i className="fas fa-expand-alt mr-1"></i>
+                        Details
+                    </button>
+                </div>
             </div>
             
             {/* Error display - now in its own section */}
@@ -995,7 +1141,7 @@ function LogBlock({ log, index, isSelected, onSelect, onShowDetail }) {
 }
 
 // Details Panel Component (unchanged)
-function DetailsPanel({ detail, onClose, isOpen }) {
+function DetailsPanel({ detail, onClose, isOpen, onShowDetail}) {
     return (
         <div className={`details-panel ${isOpen ? 'open' : ''}`}>
             {!detail ? (
@@ -1017,6 +1163,7 @@ function DetailsPanel({ detail, onClose, isOpen }) {
                             {detail.type === 'task_details' && 'Task Details'}
                             {detail.type === 'task_field' && `Task ${detail.field}`}
                             {detail.type === 'file' && 'File Details'}
+                            {detail.type === 'log_detail' && `Log #${detail.log_index + 1} Details`}
                             {detail.type === 'think' && 'Think'}
                             {detail.type === 'tool_call' && 'Tool Call'}
                             {detail.type === 'memory_op' && 'Memory Operation'}
@@ -1035,12 +1182,159 @@ function DetailsPanel({ detail, onClose, isOpen }) {
                         {detail.type === 'task_details' && <TaskDetails task={detail.task} />}
                         {detail.type === 'task_field' && <TaskFieldDetail field={detail.field} value={detail.value} />}
                         {detail.type === 'file' && <FileDetail file={detail.file} />}
+                        {detail.type === 'log_detail' && <LogDetail log={detail.log} logIndex={detail.log_index} onShowDetail={onShowDetail}/>}
                         {detail.type === 'think' && <ThinkDetail content={detail.content} />}
                         {detail.type === 'tool_call' && <ToolCallDetail content={detail.content} />}
                         {detail.type === 'memory_op' && <MemoryOpDetail content={detail.content} />}
                     </div>
                 </>
             )}
+        </div>
+    );
+}
+
+// Log Detail Component
+function LogDetail({ log, logIndex, onShowDetail}) {
+    return (
+        <div className="space-y-6 animate-fade-in">
+            {/* Log Header */}
+            <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-lg font-semibold text-slate-800">Log #{logIndex + 1}</h3>
+                    <span className="text-sm text-slate-500">
+                        {new Date(log.timestamp).toLocaleString()}
+                    </span>
+                </div>
+                {log.error && (
+                    <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                        <div className="flex items-center mb-2">
+                            <i className="fas fa-exclamation-triangle text-red-500 mr-2"></i>
+                            <span className="text-sm font-semibold text-red-700">Error Occurred</span>
+                        </div>
+                        <p className="text-sm text-red-600">{log.error}</p>
+                    </div>
+                )}
+            </div>
+
+            {/* Query Section */}
+            {log.query && (
+                <div className="bg-white border border-slate-200 rounded-lg p-4">
+                    <h4 className="text-sm font-semibold text-slate-700 mb-3 flex items-center">
+                        <i className="fas fa-question-circle mr-2"></i>
+                        Query
+                    </h4>
+                    <div className="bg-slate-50 p-3 rounded-lg">
+                        <p className="text-sm text-slate-800 whitespace-pre-wrap">{log.query}</p>
+                    </div>
+                </div>
+            )}
+
+            {/* Response Summary */}
+            <div className="bg-white border border-slate-200 rounded-lg p-4">
+                <h4 className="text-sm font-semibold text-slate-700 mb-3 flex items-center">
+                    <i className="fas fa-reply mr-2"></i>
+                    Response Summary
+                </h4>
+                <div className="bg-slate-50 p-3 rounded-lg">
+                    <p className="text-sm text-slate-800 whitespace-pre-wrap">{log.response_summary || 'No response summary available'}</p>
+                </div>
+            </div>
+
+            {/* Entries Section */}
+            {log.entries && log.entries.length > 0 && (
+                <div className="bg-white border border-slate-200 rounded-lg p-4">
+                    <h4 className="text-sm font-semibold text-slate-700 mb-3 flex items-center">
+                        <i className="fas fa-list mr-2"></i>
+                        Log Entries ({log.entries.length})
+                    </h4>
+                    <div className="space-y-3 max-h-96 overflow-y-auto custom-scrollbar">
+                        {log.entries.map((entry, index) => (
+                            <div key={index} className="bg-slate-50 border border-slate-200 rounded-lg p-3">
+                                <div className="flex items-center justify-between mb-2">
+                                    <span className="text-xs font-medium text-slate-600">Entry #{index + 1}</span>
+                                    {entry.timestamp && (
+                                        <span className="text-xs text-slate-500">
+                                            {new Date(entry.timestamp).toLocaleTimeString()}
+                                        </span>
+                                    )}
+                                </div>
+                                <div className="text-sm text-slate-800 whitespace-pre-wrap">
+                                    {typeof entry === 'string' ? entry : JSON.stringify(entry, null, 2)}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* Files Section */}
+            {log.files && Object.keys(log.files).length > 0 && (
+                <div className="bg-white border border-slate-200 rounded-lg p-4">
+                    <h4 className="text-sm font-semibold text-slate-700 mb-3 flex items-center">
+                        <i className="fas fa-file-code mr-2"></i>
+                        Extracted Files ({Object.keys(log.files).length})
+                    </h4>
+                    <div className="space-y-3">
+                        {Object.entries(log.files).map(([filename, file]) => (
+                            <div key={filename} className="bg-slate-50 border border-slate-200 rounded-lg p-3">
+                                <div className="flex items-center justify-between mb-2">
+                                    <div className="flex items-center">
+                                        <i className={`mr-2 ${
+                                            file.type === 'code' ? 'fas fa-code text-blue-600' :
+                                            file.type === 'data' ? 'fas fa-database text-purple-600' :
+                                            file.type === 'html' ? 'fas fa-globe text-orange-600' :
+                                            file.type === 'article' ? 'fas fa-file-alt text-green-600' :
+                                            'fas fa-file text-slate-600'
+                                        }`}></i>
+                                        <span className="font-medium text-slate-800">{filename}</span>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                        <span className="text-xs text-slate-500">{file.type}</span>
+                                        <span className="text-xs text-slate-500">{file.size} chars</span>
+                                    </div>
+                                </div>
+                                <div className="text-xs text-slate-600 bg-white p-2 rounded border max-h-32 overflow-y-auto">
+                                    <pre className="whitespace-pre-wrap">{file.content.substring(0, 200)}{file.content.length > 200 ? '...' : ''}</pre>
+                                </div>
+                                <button
+                                    onClick={() => onShowDetail({ type: 'file', file: file, log_index: logIndex, parent: { type: 'log_detail', log: log, log_index: logIndex } })}
+                                    className="mt-2 text-xs text-indigo-600 hover:text-indigo-800 font-medium"
+                                >
+                                    View Full File →
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* Statistics */}
+            <div className="bg-white border border-slate-200 rounded-lg p-4">
+                <h4 className="text-sm font-semibold text-slate-700 mb-3 flex items-center">
+                    <i className="fas fa-chart-bar mr-2"></i>
+                    Statistics
+                </h4>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                        <span className="text-slate-500">Entries:</span>
+                        <span className="font-medium ml-2">{log.entries?.length || 0}</span>
+                    </div>
+                    <div>
+                        <span className="text-slate-500">Files:</span>
+                        <span className="font-medium ml-2">{Object.keys(log.files || {}).length}</span>
+                    </div>
+                    <div>
+                        <span className="text-slate-500">Status:</span>
+                        <span className={`font-medium ml-2 ${log.error ? 'text-red-600' : 'text-green-600'}`}>
+                            {log.error ? 'Error' : 'Success'}
+                        </span>
+                    </div>
+                    <div>
+                        <span className="text-slate-500">Timestamp:</span>
+                        <span className="font-medium ml-2">{new Date(log.timestamp).toLocaleTimeString()}</span>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }
@@ -1243,7 +1537,6 @@ function TaskDetails({ task }) {
     );
 }
 
-// Task Field Detail Component (unchanged)
 function TaskFieldDetail({ field, value }) {
     return (
         <div className="space-y-4 animate-fade-in">
@@ -1257,20 +1550,94 @@ function TaskFieldDetail({ field, value }) {
                     }></i>
                     {field.charAt(0).toUpperCase() + field.slice(1)}
                 </div>
-                <div className="task-detail-content whitespace-pre-wrap">
-                    {value || `No ${field} set`}
+                <div className="task-detail-content">
+                    {value ? (
+                        <MarkdownContent content={value} />
+                    ) : (
+                        <span className="text-slate-500">No {field} set</span>
+                    )}
                 </div>
             </div>
         </div>
     );
 }
 
-// File Detail Component (unchanged)
-function FileDetail({ file }) {
+function FileDetail({ file, parent }) {
+    // Function to handle file download
+    const downloadFile = () => {
+        try {
+            // Determine file extension based on type or filename
+            let extension = '';
+            if (file.filename && file.filename.includes('.')) {
+                extension = file.filename.split('.').pop();
+            } else {
+                // Fallback to type-based extension
+                switch (file.type) {
+                    case 'plan':
+                        extension = 'md';
+                        break;
+                    case 'note':
+                        extension = 'md';
+                        break;
+                    case 'article':
+                        extension = 'md';
+                        break;
+                    case 'markdown':
+                        extension = 'md';
+                        break;
+                    case 'txt':
+                        extension = 'txt';
+                        break;
+                    default:
+                        extension = 'txt';
+                }
+            }
+
+            // Create filename
+            const filename = file.filename || `file_${Date.now()}.${extension}`;
+            
+            // Create blob and download
+            const blob = new Blob([file.content], { type: 'text/plain;charset=utf-8' });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error('Download failed:', error);
+            alert('Failed to download file');
+        }
+    };
+
     return (
         <div className="space-y-6 animate-fade-in">
+            {parent && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    <div className="flex items-center text-blue-700">
+                        <i className="fas fa-info-circle mr-2"></i>
+                        <span className="text-sm">
+                            Viewing file from Log #{parent.log_index + 1}
+                        </span>
+                    </div>
+                </div>
+            )}
+            
             <div>
-                <h3 className="text-lg font-semibold text-slate-800 mb-2">{file.filename}</h3>
+                <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-slate-800">{file.filename || 'Untitled File'}</h3>
+                    <button
+                        onClick={downloadFile}
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover-lift flex items-center"
+                        title="Download file"
+                    >
+                        <i className="fas fa-download mr-2"></i>
+                        Download
+                    </button>
+                </div>
+                
                 <div className="flex flex-wrap gap-2 mb-4">
                     <span className="bg-blue-100 text-blue-700 text-xs font-medium px-2 py-1 rounded-full">
                         {file.type}
@@ -1287,9 +1654,24 @@ function FileDetail({ file }) {
             </div>
             
             <div>
-                <label className="text-sm font-semibold text-slate-700 mb-2 block">Content</label>
-                <div className="code-block p-4 rounded-xl text-sm overflow-x-auto">
-                    <pre className="whitespace-pre-wrap">{file.content}</pre>
+                <div>
+                    <label className="text-sm font-semibold text-slate-700 mb-2 block">Content</label>
+                    {/* Check if it's a markdown file and render accordingly */}
+                    {(file.type === 'markdown' || 
+                    file.type === 'article' || 
+                    file.type === 'note' || 
+                    file.type === 'plan' || 
+                    (file.filename && (file.filename.endsWith('.md') || file.filename.endsWith('.markdown')))) ? (
+                        // Render as markdown
+                        <div className="bg-white border border-slate-200 p-4 rounded-xl text-sm overflow-x-auto">
+                            <MarkdownContent content={file.content} />
+                        </div>
+                    ) : (
+                        // Render as code/plain text
+                        <div className="bg-slate-900 text-slate-100 p-4 rounded-xl text-sm overflow-x-auto">
+                            <pre className="whitespace-pre-wrap text-slate-100">{file.content}</pre>
+                        </div>
+                    )}
                 </div>
             </div>
             

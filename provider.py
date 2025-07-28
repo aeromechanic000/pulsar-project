@@ -10,7 +10,9 @@ def get_provider(provider_name = "Pollinations") :
     cls = None
     if provider_name == "Pollinations" :
         cls = PollinationsProvider
-    elif provider_name in ["Doubao", ] :
+    elif provider_name == "Ollama" :
+        cls = OllamaProvider
+    elif provider_name in ["Open", "Doubao", "Qwen", "OpenRouter", ] :
         cls = OpenProvider
     return cls
 
@@ -36,6 +38,34 @@ class PollinationsProvider(LLMProvider):
             async with session.get(url) as response:
                 text_response = await response.text()
                 return text_response
+
+class OllamaProvider(LLMProvider):
+    """Implementation for Provider with OpenAI compatible API"""
+    
+    def __init__(self, config = None):
+        self.config = config
+        self.base_url = self.config.get("base_url", "http://127.0.0.1:11434") 
+        self.model = self.config.get("model", "llama3.2") 
+
+    async def generate_response(self, prompt : str) -> str :
+        """Generate response using Pollinations AI"""
+        async with aiohttp.ClientSession() as session:
+            headers = {
+                "Content-Type": "application/json",
+            }
+
+            payload = {
+                "model" : self.model, 
+                "prompt" : prompt, 
+                "stream" : False,
+            }
+
+            async with session.post(urljoin(self.base_url, "api/generate"), headers=headers, json=payload) as response:
+                if response.status == 200:
+                    response_data = await response.json()
+                    return  response_data.get("response", "")
+                else :
+                    add_log(f"Invalid provider response: {response}", "error")
 
 class OpenProvider(LLMProvider):
     """Implementation for Provider with OpenAI compatible API"""

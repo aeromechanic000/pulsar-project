@@ -71,7 +71,7 @@ class Memory :
                     "database": self.database,
                 }
                 json.dump(data, f, indent=4)
-            add_log("Memory saved successfully.")
+            add_log("Memory saved successfully.", label = "success")
         except Exception as e:
             add_log(f"Error saving memory: {e}", label="error")
     
@@ -84,7 +84,7 @@ class Memory :
                 self.summary = data.get("summary", {})
                 self.topics = data.get("topics", {})
                 self.database = data.get("database", {})
-            add_log("Memory loaded successfully.")
+            add_log("Memory loaded successfully.", label = "success")
         except FileNotFoundError:
             add_log("No previous memory found, starting fresh.")
         except Exception as e:
@@ -313,7 +313,7 @@ class Memory :
                         fact_key = f"fact_{get_datetime_stamp()}_{i}"
                         self.database[fact_key] = str(fact)
                         
-                add_log(f"Memory updated successfully. Current topics: {len(self.topics)}/{self.config.get('max_topics', 20)}")
+                add_log(f"Memory updated successfully. Current topics: {len(self.topics)}/{self.config.get('max_topics', 20)}", label = "success")
                 
         except Exception as e:
             add_log(f"Error updating memory: {e}", label="error")
