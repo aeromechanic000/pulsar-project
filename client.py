@@ -1,5 +1,7 @@
-import sys, asyncio, json
+import os, sys, asyncio, json
+import argparse, logging
 from contextlib import AsyncExitStack
+from typing import Optional, Dict, List, Tuple, Any
 
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
@@ -99,7 +101,7 @@ class MCPServerManager:
         await self.exit_stack.aclose()
 
 class Client:
-    """Enhanced MCP client with multi-server support and configurable LLM providers"""
+    """Pulsar Agent client with multi-server support and configurable LLM providers"""
     
     def __init__(self) :
         self.provider, self.memory = None, None
@@ -111,12 +113,6 @@ class Client:
         """Initialize the client with server configurations"""
         self.configs = configs or {}
 
-        await self.server_manager.load_servers_config(configs.get("mcpServers", {}))
-        await self.server_manager.connect_all_servers()
-
-        self.task_manager.load_config(self.configs.get("task", {}))
-        self.memory = Memory(self, self.configs.get("memory", {}))
-    
         provider_config = self.configs.get("provider", {})
         provider_name = provider_config.get("name", None)
         provider_cls = get_provider(provider_name) 
@@ -127,24 +123,39 @@ class Client:
         else:
             add_log(f"Unknown provider: {provider_name}", label = "error")
 
-        # Show available memory operations 
-        operations = await self.memory.get_operations()
-        print(f"\nTotal available memory operations: {len(operations)}")
-        for op in operations.values():
-            print(f"\n- {op['name']}: '{op['description']}")
-            print(f"  Input schema: {json.dumps(op['input_schema'])}")
+        await self.server_manager.load_servers_config(configs.get("mcpServers", {}))
+        await self.server_manager.connect_all_servers()
 
-        # Show available tools
+        self.task_manager.load_config(self.configs.get("task", {}))
+        self.memory = Memory(self, self.configs.get("memory", {}))
+
+    async def get_config_info(self) :
+        operations = await self.memory.get_operations()
         tools = await self.server_manager.get_tools()
-        print(f"\nTotal available tools: {len(tools)}")
-        for tool in tools.values():
-            print(f"\n- {tool['name']}: '{tool['description']}")
-            print(f"  Input schema: {json.dumps(tool['input_schema'])}")
     
-    async def react(self) -> Dict:
+        info = {
+            "provider" : self.configs.get("provider", {}),
+            "memory_operations_num" : len(operations),
+            "memory_operations" : [
+                {
+                    "name" :  op['name'], 
+                    "description" : op['description'],
+                } for op in operations.values()
+            ],
+            "tools_num" : len(tools),
+            "tools" : [
+                {
+                    "name" :  tool['name'], 
+                    "description" : tool['description'],
+                } for tool in tools.values() 
+            ],
+        }
+        return info
+    
+    async def react(self, query) -> Tuple[Dict, bool] :
         response = {"content" : []}
         # Convert messages to a single prompt
-        prompt = await self._context_to_prompt()
+        prompt = await self._context_to_prompt(query)
         add_log(f"Prompt: {prompt}", label="log", print = False)
 
         text_response = await self.provider.generate_response(prompt)
@@ -182,9 +193,9 @@ class Client:
                     response["content"].append(tool_call)
 
         add_log(f"Response: {response}", label = "log", print = False)
-        return response
+        return response, dict_response.get("finished", True)
 
-    async def _context_to_prompt(self) -> str:
+    async def _context_to_prompt(self, query) -> str:
         """Convert message format to prompt string"""
         prompt_parts = ['''
 I am an AI assistant, which is good at answer user's query from the conversations, based on the memory status and task status. In generating the response, I will consider to answer with four parts: 
@@ -192,6 +203,8 @@ I am an AI assistant, which is good at answer user's query from the conversation
 2. Text: the text response to the user's query.
 3. Memory Operation: if I need to perform a memory operation, I will return the operation name and parameters. Make sure a memroy operation is really necessary and not redundant and not repetitive. 
 4. Tool: if I need to use a tool, I will return the tool name and parameters. Make sure a memroy operation is really necessary and not redundant and not repetitive. 
+
+Furthermore, you have to explicitly indicate if you have finished the generation of response, or need to perform more steps or stop and wait for user's next query. This is important if you need multiple steps to answer current query well. But be careful, if you are not sure what to do next, you should leave the decision to the user.
 
 The result should be formatted in **JSON** dictionary and enclosed in **triple backticks (` ``` ` )**  without labels like 'json', 'css', or 'data'.
 - **Do not** generate redundant content other than the result in JSON format.
@@ -205,7 +218,13 @@ The result should be formatted in **JSON** dictionary and enclosed in **triple b
     - 'tool': ONLY USED when you need to use a tool (from the available tools), the value is a dictionary with the tool name and parameters:
         - 'name': The name of the tool to use.
         - 'args': A dictionary of arguments for the tool.
+    - 'finished': A JSON bool value indicating if your actions are finished, set 'true' to stop processing and send response to the user; set 'false' to continue the actions. When you used a tool or you need more steps to collect information to complete the response, you should set 'finished' to 'false'.
     ''']
+
+        common_sense_text = await self.get_common_sense_context()
+        add_log(f"Get common_sense_text: {common_sense_text}", label="log", print = False)
+        if len(common_sense_text) > 0 : 
+            prompt_parts.append(f"\n## Common Sense Information:\n{common_sense_text}")
 
         static_memory_text = await self.memory.get_static_context()
         add_log(f"Get static_memory_text: {static_memory_text}", label="log", print = False)
@@ -218,13 +237,13 @@ The result should be formatted in **JSON** dictionary and enclosed in **triple b
         if len(static_task_text) > 0 : 
             prompt_parts.append(f"\n## Static Task:\n{static_task_text}")
         
-        dynamic_memory_text = await self.memory.get_dynamic_context()
+        dynamic_memory_text = await self.memory.get_dynamic_context(query)
         add_log(f"Get dynamic_memory_text: {dynamic_memory_text}", label="log", print = False)
         if len(dynamic_memory_text) > 0 : 
             prompt_parts.append(f"\n## Dynamic Memory:\n{dynamic_memory_text}")
 
         # Fix: Use task_manager instead of task
-        dynamic_task_text = await self.task_manager.get_dynamic_context()
+        dynamic_task_text = await self.task_manager.get_dynamic_context(query)
         add_log(f"Get dynamic_task_text: {dynamic_task_text}", label="log", print = False)
         if len(dynamic_task_text) > 0 : 
             prompt_parts.append(f"\n## Dynamic Task:\n{dynamic_task_text}")
@@ -248,6 +267,12 @@ The result should be formatted in **JSON** dictionary and enclosed in **triple b
         prompt_parts.append("\nYour Answer:\n")
         
         return "\n".join(prompt_parts)
+    
+    async def get_common_sense_context(self) : 
+        common_sense_parts = [
+            f"Curent date and time: {get_datetime()}"
+        ]
+        return "\n".join(common_sense_parts)
 
     def _extract_output(self, text: str) -> Dict:
         """Extract structured output from response text"""
@@ -264,6 +289,8 @@ The result should be formatted in **JSON** dictionary and enclosed in **triple b
                 output["mem_op"] = data["mem_op"]
             if isinstance(data.get("tool", None), Dict) and len(data["tool"]) > 0:
                 output["tool"] = data["tool"]
+            if "finished" in data.keys() :
+                output["finished"] = convert_to_boolean(data["finished"])
         except Exception as e:
             add_log(f"Error extracting output: {str(e)}", label="error")
         
@@ -281,7 +308,8 @@ The result should be formatted in **JSON** dictionary and enclosed in **triple b
             iter += 1
             
             # Get LLM response
-            response = await self.react()
+            response, finished = await self.react(query)
+            need_next_interation = not finished 
             
             calls_made = False
             response_text = ""
@@ -295,7 +323,7 @@ The result should be formatted in **JSON** dictionary and enclosed in **triple b
                     })
 
                 elif content["type"] == "mem_op":
-                    calls_made = True
+                    need_next_interation = True 
                     op_name = content["name"]
                     op_args = content["args"]
                     
@@ -331,7 +359,7 @@ The result should be formatted in **JSON** dictionary and enclosed in **triple b
                         })
 
                 elif content["type"] == "tool":
-                    calls_made = True
+                    need_next_interation = True 
                     tool_name = content["name"]
                     tool_args = content["args"]
                     
@@ -364,12 +392,12 @@ The result should be formatted in **JSON** dictionary and enclosed in **triple b
                             "content": error_msg,
                         })
 
-            if not calls_made:
+            await self.task_manager.update(query, self.messages[new_message_index:])
+
+            if not need_next_interation:
                 break
             
         response = self.messages[new_message_index:]
-        await self.task_manager.update(query, response)
-
         return response
     
     async def cleanup(self):
@@ -378,7 +406,7 @@ The result should be formatted in **JSON** dictionary and enclosed in **triple b
 
 async def chat_loop(client):
     """Run an interactive chat loop"""
-    print("\nEnhanced MCP Client Started!")
+    print("\nPulsar Agent Client Started!")
     print("Type your queries or 'quit' to exit.")
     print("Type 'mem_ops' to see available memory operations.")
     print("Type 'tools' to see available tools.")
@@ -436,10 +464,25 @@ async def chat_loop(client):
             print(f"\n[Error] {str(e)}")
 
 async def main():
+    parser = argparse.ArgumentParser(description="Setup and run the program.")
+    parser.add_argument('--save-logs', action='store_true', help='Enable log saving')
+    parser.add_argument('--config-path', type=str, default="configs.json", help='Path to the config file')
+
+    args = parser.parse_args()
+    
+    if args.save_logs:
+        logging.basicConfig(
+            filename = os.path.join("./logs/client_log-%s.json" % (get_datetime_stamp())),
+            filemode = 'a',
+            format = '%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
+            datefmt = '%H:%M:%S',
+            level = logging.DEBUG, 
+        )
+
     add_log("Usage: python client.py <config_json_path>")
     add_log("Example: python client.py configs.json")
     
-    config_path = sys.argv[1] if len(sys.argv) > 1 else "configs.json"
+    config_path = args.config_path
 
     add_log(f"Using configs: {config_path}")
 
@@ -453,14 +496,14 @@ async def main():
 
 if __name__ == "__main__":
 
-    if not os.path.exists('./logs'):
-        os.makedirs('./logs')
+    # Create necessary directories
+    os.makedirs('static', exist_ok=True)
+    os.makedirs('templates', exist_ok=True)
+    os.makedirs('logs', exist_ok=True)
+    os.makedirs('data', exist_ok=True)
+    os.makedirs('data/memory', exist_ok=True)
+    os.makedirs('data/task', exist_ok=True)
 
-    logging.basicConfig(
-        filename = os.path.join("./logs/log-%s.json" % (get_datetime_stamp())),
-        filemode = 'a',
-        format = '%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
-        datefmt = '%H:%M:%S',
-        level = logging.DEBUG, 
-    )
+    
+
     asyncio.run(main())

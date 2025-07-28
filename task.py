@@ -1,4 +1,4 @@
-import re, aiohttp
+import re, aiohttp, asyncio
 from typing import Optional, Dict, List, Any
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
@@ -132,152 +132,170 @@ class TaskLogRecord:
 
 class FileExtractor:
     """Utility class for extracting different types of content from text"""
+    def __init__(self, provider=None):
+        self.provider = provider
     
     @staticmethod
-    def get_file_extension(language: str) -> str:
-        """Get appropriate file extension for programming language."""
+    def get_file_extension(content_type: str) -> str:
+        """Get appropriate file extension for content type."""
         extension_map = {
-            'python': 'py', 'javascript': 'js', 'typescript': 'ts', 'java': 'java',
-            'cpp': 'cpp', 'c': 'c', 'csharp': 'cs', 'php': 'php', 'ruby': 'rb',
-            'go': 'go', 'rust': 'rs', 'swift': 'swift', 'kotlin': 'kt', 'scala': 'scala',
-            'html': 'html', 'css': 'css', 'sql': 'sql', 'bash': 'sh', 'shell': 'sh',
-            'powershell': 'ps1', 'yaml': 'yml', 'json': 'json', 'xml': 'xml',
-            'markdown': 'md', 'text': 'txt'
+            'markdown': 'md', 
+            'text': 'txt',
+            'novel': 'md',
+            'plan': 'md',
+            'note': 'txt',
+            'story': 'md',
+            'article': 'md',
+            'recipe': 'md',
+            'tutorial': 'md',
+            'guide': 'md',
+            'documentation': 'md',
+            'letter': 'txt',
+            'email': 'txt',
+            'report': 'md'
         }
-        return extension_map.get(language.lower(), 'txt')
+        return extension_map.get(content_type.lower(), 'txt')
     
-    @classmethod
-    def extract_code_blocks(cls, text: str) -> List[ExtractedFile]:
-        """Extract code blocks from text"""
-        files = []
-        code_pattern = r'```(\w+)?\n(.*?)\n```'
-        code_matches = re.findall(code_pattern, text, re.DOTALL)
+    async def analyze_content_with_llm(self, text: str) -> List[Dict[str, Any]]:
+        """Use LLM to analyze content and identify extractable files"""
+        if not self.provider:
+            return []
         
-        for i, (language, code_content) in enumerate(code_matches):
-            if code_content.strip():
-                language = language or "text"
-                filename = f"code_block_{i+1}.{cls.get_file_extension(language)}"
+        prompt = f"""
+Analyze the following text and identify distinct pieces of content that would be better as independent files.
+
+Look for content like:
+- Stories, novels, or creative writing pieces
+- Plans, guides, or tutorials  
+- Notes, documentation, or articles
+- Recipes, instructions, or procedures
+- Letters, emails, or formal communications
+- Code snippets or technical documentation
+- Any other coherent, standalone content
+
+For each piece you identify, provide:
+- start_marker: A unique phrase from the beginning of the content (max 50 chars)
+- end_marker: A unique phrase from the end of the content (max 50 chars) 
+- content_type: The type of content (novel, plan, note, article, recipe, etc.)
+- title: A descriptive title for the file
+- description: Brief description of what this content contains
+
+Only identify content that:
+1. Is substantial (more than 100 characters)
+2. Forms a coherent, standalone piece
+3. Would benefit from being in a separate file
+
+Text to analyze:
+{text}
+
+Respond in JSON format with an array of objects:
+[
+{{
+    "start_marker": "beginning phrase...",
+    "end_marker": "ending phrase...",
+    "content_type": "novel",
+    "title": "My Story Title",
+    "description": "A short story about..."
+}}
+]
+    """
+        
+        try:
+            response = await self.provider.generate_response(prompt)
+            from utils import split_content_and_json
+            content, data = split_content_and_json(response)
+            
+            if isinstance(data, list):
+                return data
+            return []
+        except Exception as e:
+            add_log(f"Error in LLM content analysis: {e}", label="error")
+            return []
+
+    async def extract_llm_identified_content(self, text: str) -> List[ExtractedFile]:
+        """Extract content identified by LLM analysis"""
+        if not self.provider:
+            return []
+        
+        files = []
+        identified_content = await self.analyze_content_with_llm(text)
+        
+        for item in identified_content:
+            try:
+                start_marker = item.get('start_marker', '')
+                end_marker = item.get('end_marker', '')
+                content_type = item.get('content_type', 'text')
+                title = item.get('title', 'untitled')
+                description = item.get('description', '')
                 
-                file_obj = ExtractedFile(
-                    filename=filename,
-                    type="code",
-                    content=code_content.strip(),
-                    size=len(code_content.strip()),
-                    timestamp=get_datetime_stamp(),
-                    language=language,
-                    metadata={"block_index": i+1}
-                )
-                files.append(file_obj)
-        
-        return files
-    
-    @classmethod
-    def extract_structured_data(cls, text: str) -> List[ExtractedFile]:
-        """Extract structured data (JSON, YAML, XML, etc.)"""
-        files = []
-        
-        # Patterns for different data formats
-        patterns = {
-            'json': r'```json\n(.*?)\n```',
-            'yaml': r'```ya?ml\n(.*?)\n```',
-            'toml': r'```toml\n(.*?)\n```',
-            'xml': r'```xml\n(.*?)\n```',
-            'ini': r'```ini\n(.*?)\n```'
-        }
-        
-        for data_format, pattern in patterns.items():
-            matches = re.findall(pattern, text, re.DOTALL)
-            for i, content in enumerate(matches):
-                if content.strip():
-                    filename = f"data_{len(files)+1}.{data_format}"
+                # Find content between markers
+                content = self._extract_content_between_markers(text, start_marker, end_marker)
+                
+                if content and len(content.strip()) > 100:  # Minimum content length
+                    # Generate filename
+                    safe_title = re.sub(r'[^\w\s-]', '', title).strip()
+                    safe_title = re.sub(r'[-\s]+', '_', safe_title)
+                    extension = self.get_file_extension(content_type)
+                    filename = f"{safe_title[:30]}.{extension}"
                     
                     file_obj = ExtractedFile(
                         filename=filename,
-                        type="data",
+                        type=content_type,
                         content=content.strip(),
                         size=len(content.strip()),
                         timestamp=get_datetime_stamp(),
-                        format=data_format,
-                        metadata={"data_index": i+1}
+                        format='markdown' if extension == 'md' else 'text',
+                        metadata={
+                            "extraction_method": "llm_analysis",
+                            "description": description,
+                            "original_title": title,
+                            "content_type": content_type
+                        }
                     )
                     files.append(file_obj)
+                    
+            except Exception as e:
+                add_log(f"Error extracting LLM-identified content: {e}", label="error")
+                continue
         
         return files
-    
+
+    def _extract_content_between_markers(self, text: str, start_marker: str, end_marker: str) -> str:
+        """Extract content between start and end markers"""
+        if not start_marker or not end_marker:
+            return ""
+        
+        try:
+            start_idx = text.find(start_marker)
+            if start_idx == -1:
+                return ""
+            
+            end_idx = text.find(end_marker, start_idx + len(start_marker))
+            if end_idx == -1:
+                # If end marker not found, try to extract a reasonable chunk
+                lines = text[start_idx:].split('\n')
+                if len(lines) > 20:  # Extract reasonable chunk
+                    return '\n'.join(lines[:20])
+                return text[start_idx:]
+            
+            return text[start_idx:end_idx + len(end_marker)]
+            
+        except Exception as e:
+            add_log(f"Error extracting content between markers: {e}", label="error")
+            return ""
+
     @classmethod
-    def extract_html_content(cls, text: str) -> List[ExtractedFile]:
-        """Extract HTML content"""
-        files = []
-        html_pattern = r'```html\n(.*?)\n```'
-        html_matches = re.findall(html_pattern, text, re.DOTALL)
-        
-        for i, html_content in enumerate(html_matches):
-            if html_content.strip():
-                filename = f"webpage_{i+1}.html"
-                
-                file_obj = ExtractedFile(
-                    filename=filename,
-                    type="html",
-                    content=html_content.strip(),
-                    size=len(html_content.strip()),
-                    timestamp=get_datetime_stamp(),
-                    format="html",
-                    metadata={"html_index": i+1}
-                )
-                files.append(file_obj)
-        
-        return files
-    
-    @classmethod
-    def extract_articles(cls, text: str) -> List[ExtractedFile]:
-        """Extract article-like markdown content"""
-        files = []
-        lines = text.split('\n')
-        article_content = []
-        in_article = False
-        article_count = 0
-        
-        for line in lines:
-            # Detect article-like content (headers, paragraphs)
-            if line.startswith('#') or (line.strip() and len(line.strip()) > 50 and not line.startswith('```')):
-                if not in_article:
-                    in_article = True
-                    article_content = []
-                article_content.append(line)
-            elif in_article and line.strip() == '':
-                article_content.append(line)
-            elif in_article and (line.startswith('```') or len(article_content) > 5):
-                # End of article-like content
-                if len(article_content) > 5:  # Minimum lines for an article
-                    article_text = '\n'.join(article_content).strip()
-                    if len(article_text) > 200:  # Minimum length for an article
-                        article_count += 1
-                        filename = f"article_{article_count}.md"
-                        
-                        file_obj = ExtractedFile(
-                            filename=filename,
-                            type="article",
-                            content=article_text,
-                            size=len(article_text),
-                            timestamp=get_datetime_stamp(),
-                            format="markdown",
-                            metadata={"article_index": article_count, "line_count": len(article_content)}
-                        )
-                        files.append(file_obj)
-                
-                in_article = False
-                article_content = []
-        
-        return files
-    
-    @classmethod
-    def extract_all_content(cls, text: str) -> List[ExtractedFile]:
+    async def extract_all_content(cls, text: str, provider=None) -> List[ExtractedFile]:
         """Extract all types of content from text"""
+        extractor = cls(provider)
+        
         all_files = []
-        all_files.extend(cls.extract_code_blocks(text))
-        all_files.extend(cls.extract_structured_data(text))
-        all_files.extend(cls.extract_html_content(text))
-        all_files.extend(cls.extract_articles(text))
+        
+        # LLM-powered extraction (if provider available)
+        if provider:
+            llm_files = await extractor.extract_llm_identified_content(text)
+            all_files.extend(llm_files)
+        
         return all_files
 
 class Task(ABC):
@@ -293,15 +311,49 @@ class Task(ABC):
         task_parts = [] 
         return "\n".join(task_parts)
 
-    async def get_dynamic_context(self):
-        task_parts = [
-            f"Current Task ID: {self.task_id}",
-            f"Current Title: {self.title}",
-            f"Current Target: {self.target or 'Not set'}",
-            f"Current Plan: {self.plan or 'Not set'}",
-            f"Current Progress: {self.progress or 'Not started'}",
-        ] 
+    async def get_dynamic_context(self, query = None) -> str :
+        task_parts = []
+        if not self.target : 
+            task_parts.extend([
+                "The task target is currently unknown.\n",
+                "Please also analyze the following user input or conversation to determine what the user is trying to accomplish.",
+                "### Instructions:",
+                "1. Identify if there is a clear target for a task, or just chat. "
+                "2. If there is a task target, try to repeat it in your thinking process to make sure your understanding correct.",
+                "3. If user is just chatting or asking for simple questions, don't over-react and misunderstand the objective as doing a complex target.",
+                "4. If you think you are asked to perform some task but the target is not complete or there are some confusing expressions, you can ask user to provide more information before performing any actions (like calling tools).",
+            ])
+        else :
+            task_parts.extend([
+                f"Title of Current Task: {self.title}",
+                f"Target of Current Task: {self.target or 'Not set'}",
+                f"Plan of Current Task: {self.plan or 'Not set'}",
+                f"Progress of Current Task: {self.progress or 'Not started'}",
+            ]) 
         return "\n".join(task_parts)
+    
+    def get_target_extraction_prompt(self) :
+        prompt_parts = [
+            "\nThe task target is not set. Please:",
+            "1. Identify the main objective or goal from the conversation",
+            "2. Set a clear, specific target",
+            "3. If there is no clear objective (e.g. user is just chatting), then leave the task target as empty",
+            "4. If there is a target extracted, also extract a short, meaningful title for this task (max 10 characters)",
+            "5. Create an initial plan with key steps",
+            "6. Set initial progress status",
+        ]
+        return prompt_parts 
+
+    def get_task_update_prompt(self) :
+        prompt_parts =[
+            "\nThe task already has a target. Please:",
+            "1. Keep the target unless it needs significant modification", 
+            "2. Update the title if the target has changed significantly",
+            "3. Update the plan based on new information or progress",
+            "4. Update progress to reflect current status",
+            "5. Add any new insights or obstacles discovered"
+        ]
+        return prompt_parts
 
     def update_title_from_target(self):
         """Extract a meaningful title from the target"""
@@ -337,9 +389,44 @@ class TaskManager:
     def __init__(self, client):
         self.client = client
         self.provider = None
+        self.file_extractor = FileExtractor()
         self.config, self.tasks = {}, {} 
         self.working_task = None
         self.next_task_id = 1  # Track next available task ID
+        self.timelabel = f"{get_random_label()}"
+    
+    def load_config(self, config):
+        self.config = config
+
+        provider_config = self.config.get("provider", {})
+        provider_name = provider_config.get("name", None)
+        provider_cls = get_provider(provider_name) 
+        if provider_cls is not None: 
+            self.provider = provider_cls(provider_config)
+            add_log(f"TaskManager is using provider: {provider_name}")
+        else:
+            self.provider = self.client.provider
+            add_log(f"TaskManager is using client's provider.")
+
+        self.file_extractor = FileExtractor(self.provider)
+        self.new_task()
+    
+    async def save(self) -> None :
+        """Save task state to disk."""
+        try:
+            with open(f"./data/task/task-{self.timelabel}.json", "w") as f:
+                data = {
+                    name : {
+                        "target" : task.target,
+                        "plan" : task.plan,
+                        "progress" : task.progress,
+                        "logs": [log.to_dict() for log in task.logs], 
+                    } for name, task in self.tasks.items()
+                }
+                json.dump(data, f, indent=4)
+            add_log("Task saved successfully.")
+        except Exception as e:
+            add_log(f"Error saving task: {e}", label="error") 
     
     def get_working_task(self) -> Optional[Task]:
         if self.working_task in self.tasks.keys():
@@ -373,21 +460,6 @@ class TaskManager:
     def get_working_task_id(self) -> int:
         return self.working_task if self.working_task is not None else -1
     
-    def load_config(self, config):
-        self.config = config
-
-        provider_config = self.config.get("provider", {})
-        provider_name = provider_config.get("name", None)
-        provider_cls = get_provider(provider_name) 
-        if provider_cls is not None: 
-            self.provider = provider_cls(provider_config)
-            add_log(f"TaskManager is using provider: {provider_name}")
-        else:
-            self.provider = self.client.provider
-            add_log(f"TaskManager is using client's provider.")
-
-        self.new_task()
-    
     def new_task(self, task_type: str = "plan") -> int:
         task_id = self.next_task_id
         
@@ -418,10 +490,10 @@ class TaskManager:
             return await working_task.get_static_context()
         return ""
 
-    async def get_dynamic_context(self) -> str:
+    async def get_dynamic_context(self, query : str = None) -> str:
         working_task = self.get_working_task()
         if working_task is not None:
-            return await working_task.get_dynamic_context()
+            return await working_task.get_dynamic_context(query)
         return ""
         
     async def update(self, query, response):
@@ -431,7 +503,7 @@ class TaskManager:
         """
         if self.working_task not in self.tasks:
             return
-        
+
         current_task = self.tasks[self.working_task]
         
         # Prepare context for analysis
@@ -446,15 +518,15 @@ class TaskManager:
         
         # Extract file content from response
         try:
-            extracted_files = FileExtractor.extract_all_content(response_text)
-            
+            extracted_files = await self.file_extractor.extract_all_content(response_text)
+
             # Add extracted files to log record
             for file_obj in extracted_files:
                 log_record.add_file(file_obj)
-                
+
             if extracted_files:
                 log_record.add_entry(f"Content extraction completed: {log_record.get_file_summary()}")
-                
+
         except Exception as e:
             log_record.set_error(f"File extraction failed: {str(e)}")
             add_log(f"Error extracting files: {e}", label="error")
@@ -476,24 +548,9 @@ class TaskManager:
         
         if not current_task.target:
             # Focus on identifying the target first
-            prompt_parts.extend([
-                "\nThe task target is not set. Please:",
-                "1. Identify the main objective or goal from the conversation",
-                "2. Set a clear, specific target",
-                "3. Extract a short, meaningful title for this task (max 60 characters)",
-                "4. Create an initial plan with key steps",
-                "5. Set initial progress status"
-            ])
+            prompt_parts.extend(current_task.get_target_extraction_prompt())
         else:
-            # Update existing task
-            prompt_parts.extend([
-                "\nThe task already has a target. Please:",
-                "1. Keep the target unless it needs significant modification", 
-                "2. Update the title if the target has changed significantly",
-                "3. Update the plan based on new information or progress",
-                "4. Update progress to reflect current status",
-                "5. Add any new insights or obstacles discovered"
-            ])
+            prompt_parts.extend(current_task.get_task_update_prompt())
         
         prompt_parts.append("""
 Please respond in JSON format with:
@@ -510,10 +567,12 @@ Format your response as JSON only, enclosed in triple backticks.""")
         try:
             if self.provider:
                 llm_response = await self.provider.generate_response(prompt)
+                add_log(f"Text response for TaskManager update: {llm_response}", print = False)
                 
                 # Extract JSON from response
                 from utils import split_content_and_json
                 content, data = split_content_and_json(llm_response)
+                add_log(f"Data in response for TaskManager update: {data}", print = False)
                 
                 # Update task fields
                 if "target" in data and data["target"]:
@@ -553,6 +612,8 @@ Format your response as JSON only, enclosed in triple backticks.""")
                     "files_extracted": len(log_record.files),
                     "update_successful": True
                 })
+            else : 
+                add_log("You need to set a valid provider for TaskManager to update.", label = "error")
                 
         except Exception as e:
             log_record.set_error(f"Task update failed: {str(e)}")
@@ -570,3 +631,6 @@ Format your response as JSON only, enclosed in triple backticks.""")
         
         files_count = len(log_record.files)
         add_log(f"Task {self.working_task} updated successfully. Files extracted: {files_count}")
+        await self.save()
+
+    

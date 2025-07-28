@@ -21,6 +21,13 @@ const api = {
     }
 };
 
+const truncate_string = (str, maxLength) => {
+    if (str) {
+        return str.length > maxLength ? str.substring(0, maxLength) + '...' : str;
+    }
+    return null
+} 
+
 // Socket connection
 const socket = io();
 
@@ -40,6 +47,29 @@ function App() {
     const [memoryOps, setMemoryOps] = useState({});
     const [alert, setAlert] = useState({ isOpen: false, title: '', message: '', type: 'info' });
     const [toast, setToast] = useState({ isVisible: false, title: '', message: '', type: 'info' });
+    const [showTaskTypeModal, setShowTaskTypeModal] = useState(false);
+    const [isPolling, setIsPolling] = useState(false);
+    const [isProcessingQuery, setIsProcessingQuery] = useState(false);
+    const [pollDuringProcessing, setPollDuringProcessing] = useState(false);
+    const [statusMessage, setStatusMessage] = useState('');
+    const [statusType, setStatusType] = useState('idle'); // 'idle', 'processing', 'polling', 'success', 'error'
+
+    const availableTaskTypes = [
+        { 
+            type: 'plan', 
+            label: 'Plan Task', 
+            icon: 'fas fa-tasks', 
+            description: 'Create a structured plan for achieving goals',
+            color: 'indigo'
+        },
+        { 
+            type: 'research', 
+            label: 'Research Task', 
+            icon: 'fas fa-search', 
+            description: 'Gather and analyze information on topics',
+            color: 'emerald'
+        }
+    ];
 
     // Alert helper functions
     const showAlert = (title, message, type = 'info') => {
@@ -70,7 +100,7 @@ function App() {
         }
         setLoading(false);
     };
-
+    
     // Load all data
     const loadAllData = async () => {
         try {
@@ -104,19 +134,70 @@ function App() {
             console.error('Failed to load task details:', error);
         }
     };
+    
+    const updateStatus = (message, type = 'idle') => {
+        setStatusMessage(message);
+        setStatusType(type);
+    };
 
+    const clearStatus = () => {
+        setStatusMessage('');
+        setStatusType('idle');
+    };
+
+    // Add polling function
+    const pollTaskStatus = async () => {
+        if (!workingTaskId || isPolling) return;
+        
+        try {
+            setIsPolling(true);
+
+            if (pollDuringProcessing) {
+                updateStatus('Fetching task updates...', 'polling');
+            }
+
+            const status = await api.get(`/tasks/${workingTaskId}/status`);
+            
+            // Check if task has been updated (compare timestamps or log counts)
+            const currentTask = tasks[workingTaskId];
+            if (currentTask && 
+                (status.logs_count !== currentTask.logs_count || 
+                status.last_updated !== currentTask.logs?.[currentTask.logs.length - 1]?.timestamp)) {
+                
+                // Task has been updated, fetch detailed data
+                await loadTaskDetails(workingTaskId);
+
+                if (pollDuringProcessing) {
+                    updateStatus('Task data refreshed', 'success');
+                }
+            }
+        } catch (error) {
+            console.error('Polling error:', error);
+            if (pollDuringProcessing) {
+                updateStatus('Failed to fetch updates', 'error');
+            }
+        } finally {
+            setIsPolling(false);
+        }
+    };
     // Send chat message
     const sendMessage = async () => {
         if (!currentQuery.trim()) return;
-        
+    
         const userMessage = { role: 'user', content: currentQuery, timestamp: new Date().toISOString() };
         setChatMessages(prev => [...prev, userMessage]);
         
         setLoading(true);
+        setIsProcessingQuery(true);  // ** ADD THIS **
+        setPollDuringProcessing(true);  // ** ADD THIS **
+
+        updateStatus('Query submitted, processing...', 'processing');
+
         try {
             const response = await api.post('/chat', { query: currentQuery });
-            
-            // Add assistant response
+
+            updateStatus('Response received, updating task data...', 'polling');
+
             const assistantMessage = {
                 role: 'assistant',
                 content: response.response,
@@ -131,19 +212,38 @@ function App() {
                     ...prev,
                     [response.updated_task.id]: response.updated_task
                 }));
+                
+                // ** ADD THIS: Load detailed task data for the updated task **
+                await loadTaskDetails(response.updated_task.id);
             }
             
-            // Refresh data
+            // Refresh general data
             await loadAllData();
+            updateStatus('Task data updated successfully', 'success');
+
+            // Clear status after 3 seconds
+            setTimeout(() => clearStatus(), 3000);
+
         } catch (error) {
+            updateStatus(`Error: ${error.message}`, 'error');
+            // Clear error after 5 seconds
+            setTimeout(() => clearStatus(), 5000);
+
             const errorMessage = {
                 role: 'system',
                 content: `Error: ${error.message}`,
                 timestamp: new Date().toISOString()
             };
             setChatMessages(prev => [...prev, errorMessage]);
+        } finally {
+            setLoading(false);
+            setIsProcessingQuery(false);  // ** ADD THIS **
+            
+            // Stop polling after a short delay to catch final updates
+            setTimeout(() => {
+                setPollDuringProcessing(false);
+            }, 3000);
         }
-        setLoading(false);
     };
 
     // Create new task
@@ -176,6 +276,23 @@ function App() {
             showAlert('Memory Error', `Failed to load memory details: ${error.message}`, 'error');
         }
     };
+
+    const showConfigDetails = async () => {
+        try {
+            const configDetails = await api.get('/config');
+            setSelectedDetail({ type: 'config', data: configDetails });
+        } catch (error) {
+            showAlert('Configuration Error', `Failed to load configuration details: ${error.message}`, 'error');
+        }
+    };
+    
+    useEffect(() => {
+        if (!workingTaskId || !pollDuringProcessing) return;
+        
+        const pollInterval = setInterval(pollTaskStatus, 1000); // More frequent during processing
+        
+        return () => clearInterval(pollInterval);
+    }, [workingTaskId, pollDuringProcessing]);
 
     // Socket listeners
     useEffect(() => {
@@ -214,7 +331,7 @@ function App() {
                     selectedTaskId={selectedTaskId}
                     onSelectTask={setSelectedTaskId}
                     onLoadTask={loadTask}
-                    onCreateTask={createNewTask}
+                    onShowTaskTypeModal={() => setShowTaskTypeModal(true)}
                 />
                 <div className="chat-container">
                     <ChatArea
@@ -223,6 +340,7 @@ function App() {
                         onQueryChange={setCurrentQuery}
                         onSendMessage={sendMessage}
                         onShowMemory={showMemoryDetails}
+                        onShowConfig={showConfigDetails}
                         loading={loading}
                         onShowDetail={setSelectedDetail}
                     />
@@ -239,6 +357,13 @@ function App() {
                     isOpen={!!selectedDetail}
                 />
             </div>
+            <StatusBar message={statusMessage} type={statusType} />
+            <TaskTypeModal
+                isOpen={showTaskTypeModal}
+                onClose={() => setShowTaskTypeModal(false)}
+                onCreateTask={createNewTask}
+                availableTypes={availableTaskTypes}
+            />
             <AlertModal
                 isOpen={alert.isOpen}
                 onClose={closeAlert}
@@ -330,7 +455,7 @@ function Header({ onRefresh }) {
 }
 
 // Task Sidebar Component (unchanged)
-function TaskSidebar({ tasks, workingTaskId, selectedTaskId, onSelectTask, onLoadTask, onCreateTask }) {
+function TaskSidebar({ tasks, workingTaskId, selectedTaskId, onSelectTask, onLoadTask, onShowTaskTypeModal }) {
     return (
         <div className="task-sidebar bg-white panel-border flex flex-col">
             <div className="p-6 border-b-2 border-slate-100">
@@ -343,18 +468,11 @@ function TaskSidebar({ tasks, workingTaskId, selectedTaskId, onSelectTask, onLoa
                 
                 <div className="flex space-x-2">
                     <button
-                        onClick={() => onCreateTask('plan')}
-                        className="flex-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover-lift"
-                        title="Create Plan Task"
+                        onClick={() => onShowTaskTypeModal(true)} // You'll need to pass this as a prop
+                        className="w-full bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover-lift"
+                        title="Create New Task"
                     >
-                        <i className="fas fa-tasks mr-2"></i>Plan
-                    </button>
-                    <button
-                        onClick={() => onCreateTask('research')}
-                        className="flex-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover-lift"
-                        title="Create Research Task"
-                    >
-                        <i className="fas fa-search mr-2"></i>Research
+                        <i className="fas fa-plus mr-2"></i>Create Task
                     </button>
                 </div>
             </div>
@@ -396,13 +514,10 @@ function TaskCard({ task, isSelected, isWorking, onSelect, onLoad }) {
             } ${isWorking ? 'ring-2 ring-emerald-200' : ''}`}
             onClick={onSelect}
         >
-            {isWorking && (
-                <div className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-400 rounded-full animate-pulse"></div>
-            )}
             
             <div className="flex justify-between items-start mb-3">
                 <div className="flex items-center space-x-2">
-                    <span className="font-semibold text-slate-800">{task.title || `Task ${task.id}`}</span>
+                    <span className="font-semibold text-slate-800">{truncate_string(task.title, 10) || `Task ${task.id}`}</span>
                     <span className="bg-slate-100 text-black-700 text-xs font-medium px-2 py-1 rounded-full">
                        {task.type} 
                     </span>
@@ -447,7 +562,8 @@ function TaskCard({ task, isSelected, isWorking, onSelect, onLoad }) {
 }
 
 // Chat Area Component (unchanged from previous version)
-function ChatArea({ messages, currentQuery, onQueryChange, onSendMessage, onShowMemory, loading, onShowDetail }) {
+function ChatArea({ messages, currentQuery, onQueryChange, onSendMessage, onShowMemory, onShowConfig, loading, onShowDetail }) {
+
     const messagesEndRef = useRef(null);
     const textareaRef = useRef(null);
 
@@ -486,6 +602,13 @@ function ChatArea({ messages, currentQuery, onQueryChange, onSendMessage, onShow
                     </div>
                     <div className="flex items-center space-x-3">
                         <button
+                            onClick={onShowConfig}
+                            className="bg-blue-50 hover:bg-blue-100 text-blue-700 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover-lift"
+                            title="View Configuration"
+                        >
+                            <i className="fas fa-cog mr-2"></i>Config
+                        </button>
+                        <button
                             onClick={onShowMemory}
                             className="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover-lift"
                             title="View Memory"
@@ -498,7 +621,7 @@ function ChatArea({ messages, currentQuery, onQueryChange, onSendMessage, onShow
                     </div>
                 </div>
             </div>
-            
+
             <div className="chat-messages custom-scrollbar">
                 {messages.length === 0 ? (
                     <div className="flex items-center justify-center h-full">
@@ -639,7 +762,7 @@ function ChatMessage({ message, onShowDetail }) {
     );
 }
 
-// Task Panel Component (unchanged)
+// Task Panel Component
 function TaskPanel({ task, selectedLogIndex, onSelectLog, onShowDetail }) {
     if (!task) {
         return (
@@ -656,14 +779,13 @@ function TaskPanel({ task, selectedLogIndex, onSelectLog, onShowDetail }) {
 
     return (
         <div className="task-panel bg-white panel-border flex flex-col">
+            {/* Header Section - Unchanged */}
             <div className="p-6 border-b-2 border-slate-100">
                 <div className="flex items-center justify-between mb-2">
                     <div>
-                        <h2 className="text-lg font-semibold text-slate-800">{task.title}</h2>
+                        <h2 className="text-lg font-semibold text-slate-800">{truncate_string(task.title, 20)}</h2>
                         <div className="text-sm text-slate-500 space-x-2 flex items-center">
-                            <span>
-                                Task {task.id}
-                            </span> 
+                            <span>Task {task.id}</span> 
                             <span className="bg-slate-100 text-black-700 text-xs font-medium px-2 py-1 rounded-full">
                                 {task.type} 
                             </span> 
@@ -682,14 +804,31 @@ function TaskPanel({ task, selectedLogIndex, onSelectLog, onShowDetail }) {
                 </div>
             </div>
             
-            <div className="p-6 border-b-2 border-slate-100 space-y-4">
-                <TaskField label="Target" value={task.target} icon="fas fa-bullseye" onClick={() => onShowDetail({ type: 'task_field', field: 'target', value: task.target })} />
-                <TaskField label="Plan" value={task.plan} icon="fas fa-map" multiline onClick={() => onShowDetail({ type: 'task_field', field: 'plan', value: task.plan })} />
-                <TaskField label="Progress" value={task.progress} icon="fas fa-chart-line" onClick={() => onShowDetail({ type: 'task_field', field: 'progress', value: task.progress })} />
+            {/* Compact Fields Section */}
+            <div className="p-4 border-b-2 border-slate-100 space-y-2">
+                <TaskField 
+                    label="Target" 
+                    value={task.target} 
+                    icon="fas fa-bullseye" 
+                    onClick={() => onShowDetail({ type: 'task_field', field: 'target', value: task.target })} 
+                />
+                <TaskField 
+                    label="Plan" 
+                    value={task.plan} 
+                    icon="fas fa-map" 
+                    onClick={() => onShowDetail({ type: 'task_field', field: 'plan', value: task.plan })} 
+                />
+                <TaskField 
+                    label="Progress" 
+                    value={task.progress} 
+                    icon="fas fa-chart-line" 
+                    onClick={() => onShowDetail({ type: 'task_field', field: 'progress', value: task.progress })} 
+                />
             </div>
             
+            {/* Activity Log Section - Now takes more space */}
             <div className="flex-1 overflow-y-auto custom-scrollbar">
-                <div className="p-6">
+                <div className="p-4">
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="font-semibold text-slate-800">Activity Log</h3>
                         <span className="bg-slate-100 text-slate-600 text-xs font-medium px-2 py-1 rounded-full">
@@ -723,21 +862,25 @@ function TaskPanel({ task, selectedLogIndex, onSelectLog, onShowDetail }) {
 }
 
 // Task Field Component (unchanged)
-function TaskField({ label, value, icon, multiline = false, onClick }) {
+function TaskField({ label, value, icon, onClick }) {
+    const truncatedValue = value ? 
+        (value.length > 60 ? value.substring(0, 60) + '...' : value) : 
+        `No ${label.toLowerCase()} set`;
+    
     return (
         <div
-            className="cursor-pointer hover:bg-slate-50 p-2 rounded-lg transition-colors duration-200"
+            className="cursor-pointer hover:bg-slate-50 p-2 rounded-lg transition-colors duration-200 border border-slate-100"
             onClick={onClick}
         >
-            <div className="flex items-center mb-2">
-                <i className={`${icon} text-slate-400 mr-2 text-sm`}></i>
-                <label className="text-sm font-medium text-slate-600">{label}</label>
-                <i className="fas fa-external-link-alt text-xs text-slate-400 ml-auto"></i>
-            </div>
-            <div className={`text-sm text-slate-800 bg-slate-50 p-3 rounded-lg border ${
-                multiline ? 'max-h-24 overflow-y-auto custom-scrollbar' : ''
-            }`}>
-                {value || `No ${label.toLowerCase()} set`}
+            <div className="flex items-center justify-between">
+                <div className="flex items-center min-w-0 flex-1">
+                    <i className={`${icon} text-slate-400 mr-2 text-sm flex-shrink-0`}></i>
+                    <label className="text-xs font-medium text-slate-600 mr-2 flex-shrink-0 w-16">{label}:</label>
+                    <span className="text-xs text-slate-800 truncate">
+                        {truncatedValue}
+                    </span>
+                </div>
+                <i className="fas fa-external-link-alt text-xs text-slate-400 ml-2 flex-shrink-0"></i>
             </div>
         </div>
     );
@@ -752,32 +895,39 @@ function LogBlock({ log, index, isSelected, onSelect, onShowDetail }) {
             }`}
             onClick={onSelect}
         >
-            <div className="flex items-center justify-between mb-2">
+            {/* Header with timestamp and log number */}
+            <div className="flex items-center justify-between mb-3">
                 <span className="text-xs font-medium text-slate-500">
                     {new Date(log.timestamp).toLocaleString()}
                 </span>
-                {log.error && (
-                    <div className="mb-2 p-2 bg-red-50 border border-red-200 rounded-lg">
-                        <div className="flex items-center mb-1">
-                            <i className="fas fa-exclamation-triangle text-red-500 mr-2"></i>
-                            <span className="text-xs font-medium text-red-700">Error Occurred</span>
-                        </div>
-                        <p className="text-xs text-red-600">{log.error}</p>
-                    </div>
-                )}
+                <span className="text-xs text-slate-500">#{index + 1}</span>
             </div>
             
+            {/* Error display - now in its own section */}
+            {log.error && (
+                <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <div className="flex items-center mb-2">
+                        <i className="fas fa-exclamation-triangle text-red-500 mr-2"></i>
+                        <span className="text-xs font-semibold text-red-700">Error Occurred</span>
+                    </div>
+                    <p className="text-xs text-red-600 leading-relaxed">{log.error}</p>
+                </div>
+            )}
+            
+            {/* Query section */}
             {log.query && (
-                <div className="mb-2">
-                    <p className="text-sm font-medium text-slate-700 mb-1">Query</p>
+                <div className="mb-3">
+                    <p className="text-xs font-medium text-slate-700 mb-1">Query</p>
                     <p className="text-xs text-slate-600 line-clamp-2">{log.query}</p>
                 </div>
             )}
             
+            {/* Response summary */}
             <div className="mb-3">
                 <p className="text-xs text-slate-600 line-clamp-2">{log.response_summary}</p>
             </div>
             
+            {/* Files section */}
             {Object.keys(log.files || {}).length > 0 && (
                 <div className="mb-3">
                     <p className="text-xs font-medium text-slate-600 mb-2">
@@ -815,9 +965,15 @@ function LogBlock({ log, index, isSelected, onSelect, onShowDetail }) {
                 </div>
             )}
             
-            <div className="flex items-center justify-between text-xs text-slate-500">
+            {/* Footer with entries count */}
+            <div className="flex items-center justify-between text-xs text-slate-500 border-t border-slate-100 pt-2">
                 <span>{log.entries?.length || 0} entries</span>
-                <span>#{index + 1}</span>
+                {!log.error && (
+                    <span className="flex items-center text-green-600">
+                        <i className="fas fa-check-circle mr-1"></i>
+                        Success
+                    </span>
+                )}
             </div>
         </div>
     );
@@ -829,6 +985,7 @@ function DetailsPanel({ detail, onClose, isOpen }) {
         <div className={`details-panel ${isOpen ? 'open' : ''}`}>
             {!detail ? (
                 <div className="p-6">
+                    
                     <h2 className="text-lg font-semibold text-slate-800 mb-4">Details</h2>
                     <div className="text-center text-slate-400">
                         <i className="fas fa-info-circle text-3xl mb-3"></i>
@@ -841,6 +998,7 @@ function DetailsPanel({ detail, onClose, isOpen }) {
                     <div className="p-6 border-b-2 border-slate-100 flex justify-between items-center bg-slate-50">
                         <h2 className="text-lg font-semibold text-slate-800">
                             {detail.type === 'memory' && 'Memory Details'}
+                            {detail.type === 'config' && 'Client Configuration'}
                             {detail.type === 'task_details' && 'Task Details'}
                             {detail.type === 'task_field' && `Task ${detail.field}`}
                             {detail.type === 'file' && 'File Details'}
@@ -855,9 +1013,9 @@ function DetailsPanel({ detail, onClose, isOpen }) {
                             <i className="fas fa-times text-lg"></i>
                         </button>
                     </div>
-                    
                     <div className="flex-1 overflow-y-auto custom-scrollbar p-6" style={{height: 'calc(100vh - 8rem)'}}>
                         {detail.type === 'memory' && <MemoryDetail data={detail.data} />}
+                        {detail.type === 'config' && <ConfigDetail data={detail.data} />}
                         {detail.type === 'task_details' && <TaskDetails task={detail.task} />}
                         {detail.type === 'task_field' && <TaskFieldDetail field={detail.field} value={detail.value} />}
                         {detail.type === 'file' && <FileDetail file={detail.file} />}
@@ -940,6 +1098,61 @@ function MemoryDetail({ data }) {
                             <div key={index} className="bg-white border border-slate-200 rounded-lg p-3">
                                 <div className="text-xs text-slate-500 mb-1">{record.timestamp}</div>
                                 <div className="text-sm text-slate-700">{record.content}</div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
+
+// Config Detail Component
+function ConfigDetail({ data }) {
+    return (
+        <div className="space-y-6 animate-fade-in">
+            {/* Provider Section */}
+            <div className="memory-section">
+                <h4><i className="fas fa-server"></i>Provider Configuration</h4>
+                {Object.keys(data.provider || {}).length === 0 ? (
+                    <p className="text-sm text-slate-500">No provider configuration</p>
+                ) : (
+                    <div className="bg-white border border-slate-200 rounded-lg p-3">
+                        <pre className="text-xs text-slate-600 whitespace-pre-wrap">
+                            {JSON.stringify(data.provider, null, 2)}
+                        </pre>
+                    </div>
+                )}
+            </div>
+
+            {/* Memory Operations Section */}
+            <div className="memory-section">
+                <h4><i className="fas fa-memory"></i>Memory Operations ({data.memory_operations_num || 0})</h4>
+                {(!data.memory_operations || data.memory_operations.length === 0) ? (
+                    <p className="text-sm text-slate-500">No memory operations available</p>
+                ) : (
+                    <div className="space-y-2">
+                        {data.memory_operations.map((op, index) => (
+                            <div key={index} className="bg-white border border-slate-200 rounded-lg p-3">
+                                <div className="font-medium text-slate-700 mb-1">{op.name}</div>
+                                <div className="text-sm text-slate-600">{op.description}</div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+
+            {/* Tools Section */}
+            <div className="memory-section">
+                <h4><i className="fas fa-tools"></i>Available Tools ({data.tools_num || 0})</h4>
+                {(!data.tools || data.tools.length === 0) ? (
+                    <p className="text-sm text-slate-500">No tools available</p>
+                ) : (
+                    <div className="space-y-2">
+                        {data.tools.map((tool, index) => (
+                            <div key={index} className="bg-white border border-slate-200 rounded-lg p-3">
+                                <div className="font-medium text-slate-700 mb-1">{tool.name}</div>
+                                <div className="text-sm text-slate-600">{tool.description}</div>
                             </div>
                         ))}
                     </div>
@@ -1153,6 +1366,99 @@ function MemoryOpDetail({ content }) {
             </div>
         );
     }
+}
+
+function TaskTypeModal({ isOpen, onClose, onCreateTask, availableTypes }) {
+    if (!isOpen) return null;
+
+    const handleCreateTask = (taskType) => {
+        onCreateTask(taskType);
+        onClose();
+    };
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+            {/* Backdrop */}
+            <div 
+                className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm"
+                onClick={onClose}
+            ></div>
+            
+            {/* Modal */}
+            <div className="relative bg-white rounded-2xl shadow-xl border-2 border-slate-200 max-w-md w-full mx-4 animate-fade-in">
+                <div className="bg-slate-50 border-b-2 border-slate-100 rounded-t-2xl p-6">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                            <i className="fas fa-plus text-indigo-600 text-xl mr-3"></i>
+                            <h3 className="text-lg font-semibold text-slate-800">
+                                Create New Task
+                            </h3>
+                        </div>
+                        <button
+                            onClick={onClose}
+                            className="text-slate-400 hover:text-slate-600 p-2 rounded-lg hover:bg-slate-200 transition-colors duration-200"
+                        >
+                            <i className="fas fa-times text-lg"></i>
+                        </button>
+                    </div>
+                    <p className="text-sm text-slate-500 mt-2">
+                        Choose the type of task you want to create
+                    </p>
+                </div>
+                
+                <div className="p-6">
+                    <div className="space-y-3 max-h-80 overflow-y-auto custom-scrollbar">
+                        {availableTypes.map((taskType) => (
+                            <button
+                                key={taskType.type}
+                                onClick={() => handleCreateTask(taskType.type)}
+                                className={`w-full text-left p-4 rounded-xl border-2 transition-all duration-200 hover-lift bg-${taskType.color}-50 hover:bg-${taskType.color}-100 border-${taskType.color}-200 hover:border-${taskType.color}-300`}
+                            >
+                                <div className="flex items-center mb-2">
+                                    <i className={`${taskType.icon} text-${taskType.color}-600 text-lg mr-3`}></i>
+                                    <span className={`font-semibold text-${taskType.color}-800`}>
+                                        {taskType.label}
+                                    </span>
+                                </div>
+                                <p className={`text-sm text-${taskType.color}-700 opacity-90`}>
+                                    {taskType.description}
+                                </p>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function StatusBar({ message, type }) {
+    if (!message) return null;
+
+    const typeStyles = {
+        idle: 'bg-slate-100 text-slate-600',
+        processing: 'bg-blue-100 text-blue-700',
+        polling: 'bg-amber-100 text-amber-700',
+        success: 'bg-green-100 text-green-700',
+        error: 'bg-red-100 text-red-700'
+    };
+
+    const iconStyles = {
+        idle: 'fas fa-info-circle',
+        processing: 'fas fa-spinner fa-spin',
+        polling: 'fas fa-sync fa-spin',
+        success: 'fas fa-check-circle',
+        error: 'fas fa-exclamation-triangle'
+    };
+
+    return (
+        <div className={`fixed bottom-0 left-0 right-0 ${typeStyles[type]} border-t-2 border-opacity-30 px-6 py-3 text-sm font-medium animate-fade-in z-40`}>
+            <div className="flex items-center justify-center">
+                <i className={`${iconStyles[type]} mr-2`}></i>
+                <span>{message}</span>
+            </div>
+        </div>
+    );
 }
 
 // Alert Modal Component

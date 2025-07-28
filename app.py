@@ -1,7 +1,7 @@
-import os, sys, json, asyncio, logging, threading, time
+import os, sys, argparse, logging, time
+import asyncio, threading
 import signal, atexit
 from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime
 from flask import Flask, request, jsonify, render_template, send_from_directory
 from flask_cors import CORS
 from flask_socketio import SocketIO, emit
@@ -123,24 +123,46 @@ def initialize_client():
             'message': str(e)
         }), 500
 
+@app.route('/api/config', methods=['GET'])
+def get_config_info():
+    """Get client configuration information"""
+    if not client_instance:
+        return jsonify({'error': 'Client not initialized'}), 400
+    
+    try:
+        config_info = run_async_in_client_loop(client_instance.get_config_info())
+        return jsonify(config_info)
+        
+    except Exception as e:
+        add_log(f"Error getting config info: {e}", label="error")
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/api/tasks', methods=['GET'])
 def get_tasks():
-    """Get all tasks"""
+    """Get all tasks with detailed information"""
     if not client_instance:
         return jsonify({'error': 'Client not initialized'}), 400
     
     try:
         tasks_data = {}
         for task_id, task in client_instance.task_manager.tasks.items():
+            # Convert logs to serializable format
+            logs_data = []
+            for log in task.logs:
+                log_dict = log.to_dict()
+                logs_data.append(log_dict)
+            
             tasks_data[task_id] = {
                 'id': task.task_id,
-                'type' : task.task_type,
+                'type': task.task_type,
                 'title': task.title,
                 'target': task.target,
                 'plan': task.plan,
                 'progress': task.progress,
                 'created_at': task.created_at,
-                'log_count': len(task.logs),
+                'logs': logs_data,
+                'logs_count': len(task.logs),
+                'files_count': sum(len(log.files) for log in task.logs),
                 'is_working': task_id == client_instance.task_manager.working_task
             }
         
@@ -220,6 +242,35 @@ def get_task_detailed_info(task_id):
         }
         
         return jsonify(task_data)
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/tasks/<int:task_id>/status', methods=['GET'])
+def get_task_status(task_id):
+    """Get current status of a specific task (lightweight)"""
+    if not client_instance:
+        return jsonify({'error': 'Client not initialized'}), 400
+    
+    try:
+        if task_id not in client_instance.task_manager.tasks:
+            return jsonify({'error': 'Task not found'}), 404
+        
+        task = client_instance.task_manager.tasks[task_id]
+        
+        # Return lightweight status info
+        status_data = {
+            'id': task.task_id,
+            'target': task.target,
+            'plan': task.plan,
+            'progress': task.progress,
+            'logs_count': len(task.logs),
+            'files_count': sum(len(log.files) for log in task.logs),
+            'last_updated': task.logs[-1].timestamp if task.logs else task.created_at,
+            'is_working': task_id == client_instance.task_manager.working_task
+        }
+        
+        return jsonify(status_data)
         
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -477,16 +528,24 @@ signal.signal(signal.SIGTERM, signal_handler)
 os.makedirs('static', exist_ok=True)
 os.makedirs('templates', exist_ok=True)
 os.makedirs('logs', exist_ok=True)
+os.makedirs('data', exist_ok=True)
+os.makedirs('data/memory', exist_ok=True)
+os.makedirs('data/task', exist_ok=True)
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description="Setup and run the program.")
+    parser.add_argument('--save-logs', action='store_true', help='Enable log saving')
+    args = parser.parse_args()
     # Setup logging
-    logging.basicConfig(
-        filename=os.path.join("./logs/flask-log-%s.log" % get_datetime_stamp()),
-        filemode='a',
-        format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
-        datefmt='%H:%M:%S',
-        level=logging.DEBUG,
-    )
+
+    if args.save_logs :
+        logging.basicConfig(
+            filename=os.path.join("./logs/flask_log-%s.log" % get_datetime_stamp()),
+            filemode='a',
+            format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
+            datefmt='%H:%M:%S',
+            level=logging.DEBUG,
+        )
     
     add_log("Starting Flask server on http://localhost:9898")
     

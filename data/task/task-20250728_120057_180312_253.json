@@ -1,0 +1,27 @@
+{
+    "1": {
+        "target": "",
+        "plan": "",
+        "progress": "",
+        "logs": [
+            {
+                "timestamp": "20250728_120109_269464",
+                "query": "make a plan visiting HKU",
+                "response_summary": "I'd be happy to help you make a plan for visiting HKU! To create a more personalized plan, could you please provide some details such as how much time you have for the visit (a day, half - day etc.), ...",
+                "entries": [],
+                "files": {},
+                "metadata": {},
+                "error": null
+            },
+            {
+                "timestamp": "20250728_120109_273824",
+                "query": "make a plan visiting HKU",
+                "response_summary": "I'd be happy to help you make a plan for visiting HKU! To create a more personalized plan, could you please provide some details such as how much time you have for the visit (a day, half - day etc.), ...",
+                "entries": [],
+                "files": {},
+                "metadata": {},
+                "error": null
+            }
+        ]
+    }
+}

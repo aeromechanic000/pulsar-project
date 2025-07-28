@@ -80,6 +80,10 @@ body {
     position: relative;
 }
 
+.layout-container.pb-12 {
+    padding-bottom: 3rem;
+}
+
 .task-sidebar {
     width: 320px;
     flex-shrink: 0;
@@ -320,6 +324,36 @@ body {
     white-space: pre-wrap;
 }
 
+/* Enhanced error display for log blocks */
+.log-error {
+    background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+    border-left: 4px solid #ef4444;
+}
+
+.log-success {
+    border-left: 4px solid #10b981;
+}
+
+/* Compact field styling */
+.compact-field {
+    min-height: 36px;
+    max-height: 36px;
+}
+
+.compact-field:hover {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+/* Enhanced truncation for better readability */
+.field-preview {
+    line-height: 1.3;
+    word-break: break-word;
+}
+
+.status-bar-space {
+    height: 3rem;
+}
+
 /* Enhanced animations for alerts */
 @keyframes slideInDown {
     from {
@@ -429,3 +463,4 @@ body {
         z-index: 50;
     }
 }
+

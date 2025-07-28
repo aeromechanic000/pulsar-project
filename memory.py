@@ -1,5 +1,5 @@
 
-import aiohttp
+import aiohttp, asyncio
 from typing import Optional, Dict, List, Any
 from abc import ABC, abstractmethod
 from urllib.parse import quote
@@ -55,6 +55,40 @@ class Memory :
         self.records = []
         self.summary, self.topics, self.database = {}, {}, {} 
         self.prepare_operations()
+
+        self.timelabel = f"{get_random_label()}"
+        if self.config.get("load_memory", True) : 
+            self.load()
+    
+    async def save(self) -> None :
+        """Save memory state to disk."""
+        try:
+            with open(f"./data/memory/memory-{self.timelabel}.json", "w") as f:
+                data = {
+                    "records": self.records,
+                    "summary": self.summary,
+                    "topics": self.topics,
+                    "database": self.database,
+                }
+                json.dump(data, f, indent=4)
+            add_log("Memory saved successfully.")
+        except Exception as e:
+            add_log(f"Error saving memory: {e}", label="error")
+    
+    def load(self) -> None :
+        """Load memory state from disk."""
+        try:
+            with open(f"./data/memory/memory_{self.timelabel}.json", "r") as f:
+                data = json.load(f)
+                self.records = data.get("records", [])
+                self.summary = data.get("summary", {})
+                self.topics = data.get("topics", {})
+                self.database = data.get("database", {})
+            add_log("Memory loaded successfully.")
+        except FileNotFoundError:
+            add_log("No previous memory found, starting fresh.")
+        except Exception as e:
+            add_log(f"Error loading memory: {e}", label="error")
     
     async def get_static_context(self) -> str : 
         memory_parts = [] 
@@ -65,7 +99,7 @@ class Memory :
             memory_parts.append(f"  Input schema: {json.dumps(op['input_schema'])}")
         return "\n".join(memory_parts)
 
-    async def get_dynamic_context(self) -> str : 
+    async def get_dynamic_context(self, query = None) -> str : 
         memory_parts = [] 
         if len(self.records) > 0 :
             memory_parts.append("\n## Latest Memory Records:")
@@ -283,3 +317,5 @@ class Memory :
                 
         except Exception as e:
             add_log(f"Error updating memory: {e}", label="error")
+        
+        await self.save()

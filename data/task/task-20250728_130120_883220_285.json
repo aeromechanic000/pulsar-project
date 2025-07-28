@@ -1,0 +1,45 @@
+{
+    "1": {
+        "target": "",
+        "plan": "",
+        "progress": "",
+        "logs": [
+            {
+                "timestamp": "20250728_130134_688033",
+                "query": "make a plan for visiting HKU",
+                "response_summary": "I understand you want a plan for visiting HKU. However, to create a more detailed and personalized visiting plan, I need some additional information. For example, how much time do you have for this vi...",
+                "entries": [],
+                "files": {},
+                "metadata": {},
+                "error": null
+            },
+            {
+                "timestamp": "20250728_130134_692241",
+                "query": "make a plan for visiting HKU",
+                "response_summary": "I understand you want a plan for visiting HKU. However, to create a more detailed and personalized visiting plan, I need some additional information. For example, how much time do you have for this vi...",
+                "entries": [],
+                "files": {},
+                "metadata": {},
+                "error": null
+            },
+            {
+                "timestamp": "20250728_130634_038405",
+                "query": "a full day visiting HKU, during the last week of July, just want to have a tour in the campus",
+                "response_summary": "Here is a one - day visiting plan for HKU during the last week of July: \n\n**Morning**: \n- **9:00 - 9:30 AM**: Arrive at the main entrance of HKU. Take some photos of the iconic entrance and the surrou...",
+                "entries": [],
+                "files": {},
+                "metadata": {},
+                "error": null
+            },
+            {
+                "timestamp": "20250728_130634_041832",
+                "query": "a full day visiting HKU, during the last week of July, just want to have a tour in the campus",
+                "response_summary": "Here is a one - day visiting plan for HKU during the last week of July: \n\n**Morning**: \n- **9:00 - 9:30 AM**: Arrive at the main entrance of HKU. Take some photos of the iconic entrance and the surrou...",
+                "entries": [],
+                "files": {},
+                "metadata": {},
+                "error": null
+            }
+        ]
+    }
+}

@@ -147,3 +147,71 @@ def is_float_convertible(value):
         return True
     except ValueError:
         return False
+
+def is_boolean_convertible(value):
+    """
+    Determines if a value represents a boolean (true or false)
+    
+    Args:
+        value: The value to check
+        
+    Returns:
+        bool: True if the value represents true/false, False otherwise
+    """
+    # Check for actual boolean values
+    if isinstance(value, bool):
+        return True
+        
+    # Check for string representations of boolean values
+    if isinstance(value, str):
+        lower_val = value.lower()
+        return lower_val in {'true', 'false', 't', 'f', 'yes', 'no', 'y', 'n'}
+        
+    # Check for integer representations (0 = false, 1 = true in some contexts)
+    if isinstance(value, int):
+        return value in (0, 1)
+        
+    return False
+
+def convert_to_boolean(value):
+    """
+    Converts a value to a boolean based on common representations of true/false.
+    
+    Args:
+        value: The value to convert (can be string, int, bool, etc.)
+        
+    Returns:
+        bool: Corresponding boolean value
+        
+    Raises:
+        ValueError: If the value cannot be converted to a boolean
+    """
+    # Handle actual boolean values
+    if isinstance(value, bool):
+        return value
+    
+    # Handle string representations (case-insensitive)
+    if isinstance(value, str):
+        lower_val = value.lower()
+        if lower_val in {'true', 't', 'yes', 'y'}:
+            return True
+        elif lower_val in {'false', 'f', 'no', 'n'}:
+            return False
+            
+    # Handle integer representations
+    if isinstance(value, int):
+        if value == 1:
+            return True
+        elif value == 0:
+            return False
+            
+    # Handle float representations that are whole numbers
+    if isinstance(value, float):
+        if value.is_integer():
+            return convert_to_boolean(int(value))
+            
+    # If none of the above, it's not convertible
+    raise ValueError(f"Cannot convert {repr(value)} to a boolean")
+    
+def truncate_string(s, num) : 
+    return s[: min(len(s), num)]
