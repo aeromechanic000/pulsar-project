@@ -17,10 +17,10 @@
    },
    "mcpServers" : {
       "weather": {
-         "command": "/opt/homebrew/bin/uv",
+         "command": "[absolute_path_to_uv]/uv",
          "args": [
             "--directory",
-            "/Users/nil/Projects/pulsar-project/mcp_servers/weather",
+            "[absolute_path_to_pulsar]/pulsar-project/mcp_servers/weather",
             "run",
             "weather.py"
          ]

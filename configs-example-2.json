@@ -1,6 +1,7 @@
 {
    "provider" : {
-      "name" : "Pollinations"
+      "name" : "Ollama",
+      "model" : "llama3.2"
    },
    "max_iters" : 5,
    "memory" : {
