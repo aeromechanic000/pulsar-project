@@ -5,6 +5,14 @@
 
 🌐 [Pulsar Agent Website](https://pulsar-agent.cc)
 
+<!-- <table>
+<tr>
+    <td><img src="https://s2.loli.net/2025/07/28/tFng6xLJkY7wdbc.gif" alt="Pulsar Agent" width="380" height="220"></td>
+    <td><img src="https://s2.loli.net/2025/07/28/eaTQ83lsfpUABKS.gif" alt="Pulsar Agent" width="380" height="220"></td>
+</tr>
+</table> -->
+
+
 ## Community
 
 Pulsar Agent is inspired by our work in the Minecraft AI project, where we build robust and extensible LLM agents to act as the cognitive core for in-game AI characters. These agents need to reason, reflect, and coordinate with others—driving the need for modular, prompt-driven architectures like PandexAgent.
@@ -17,6 +25,8 @@ We welcome collaboration, discussion, and ideas. Join us in the Minecraft AI Dis
 
 
 ## Key Features
+
+![pulsar-1.gif](https://s2.loli.net/2025/07/28/tFng6xLJkY7wdbc.gif)
 
 ### 1. **Modular MCP Integration**
 - Connects to **multiple MCP servers** using Claude’s protocol.
