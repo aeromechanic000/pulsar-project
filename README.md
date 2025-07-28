@@ -75,24 +75,6 @@ Options:
 
 ---
 
-## Project Structure
-
-```text
-.
-├── app.py              # Flask Web API + WebSocket for UI
-├── client.py           # CLI-based LLM agent interface
-├── memory/             # Memory extraction and operations
-├── task/               # Task definitions and task manager
-├── provider/           # LLM provider interfaces
-├── templates/          # HTML frontend (if provided)
-├── static/             # Static assets
-├── configs.json        # Example config file
-├── logs/               # Log outputs
-└── data/               # Agent memory and task state persistence
-```
-
----
-
 ## API Endpoints
 
 Flask app provides REST APIs:
