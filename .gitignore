@@ -6,4 +6,5 @@ __pycache__/*
 .fslckout
 fossil_ignore.sh
 api/__pycache__/*
-logs/
+logs/*
+data/*

@@ -310,8 +310,6 @@ The result should be formatted in **JSON** dictionary and enclosed in **triple b
             # Get LLM response
             response, finished = await self.react(query)
             need_next_interation = not finished 
-            
-            calls_made = False
             response_text = ""
 
             for content in response["content"]:
@@ -320,6 +318,13 @@ The result should be formatted in **JSON** dictionary and enclosed in **triple b
                     self.messages.append({
                         "role" : "assistant", 
                         "content" : response_text,
+                    })
+                
+                if content["type"] == "think":
+                    response_text = content["content"]
+                    self.messages.append({
+                        "role" : "assistant", 
+                        "content": f"[Think] {response_text}"
                     })
 
                 elif content["type"] == "mem_op":

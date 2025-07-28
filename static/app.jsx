@@ -720,6 +720,21 @@ function ChatMessage({ message, onShowDetail }) {
                         const content = item.content;
                         
                         // Handle different content types
+                        if (content.includes('[Think]')) {
+                            return (
+                                <button
+                                    key={index}
+                                    onClick={() => onShowDetail({ type: 'think', content: content })}
+                                    className="w-full bg-slate-50 hover:bg-black-100 border border-gray-200 text-gray-700 p-3 rounded-xl text-sm transition-all duration-200 hover-lift text-left"
+                                >
+                                    <i className="fas fa-tools mr-2"></i>
+                                    <span className="font-medium">Think</span>
+                                    <span className="block text-xs text-gray-900 mt-1">Click to view details</span>
+                                </button>
+                            );
+                        }
+
+                        // Handle different content types
                         if (content.includes('[Tool Called]')) {
                             return (
                                 <button
@@ -1002,6 +1017,7 @@ function DetailsPanel({ detail, onClose, isOpen }) {
                             {detail.type === 'task_details' && 'Task Details'}
                             {detail.type === 'task_field' && `Task ${detail.field}`}
                             {detail.type === 'file' && 'File Details'}
+                            {detail.type === 'think' && 'Think'}
                             {detail.type === 'tool_call' && 'Tool Call'}
                             {detail.type === 'memory_op' && 'Memory Operation'}
                         </h2>
@@ -1019,6 +1035,7 @@ function DetailsPanel({ detail, onClose, isOpen }) {
                         {detail.type === 'task_details' && <TaskDetails task={detail.task} />}
                         {detail.type === 'task_field' && <TaskFieldDetail field={detail.field} value={detail.value} />}
                         {detail.type === 'file' && <FileDetail file={detail.file} />}
+                        {detail.type === 'think' && <ThinkDetail content={detail.content} />}
                         {detail.type === 'tool_call' && <ToolCallDetail content={detail.content} />}
                         {detail.type === 'memory_op' && <MemoryOpDetail content={detail.content} />}
                     </div>
@@ -1289,6 +1306,46 @@ function FileDetail({ file }) {
         </div>
     );
 }
+
+// Think Detail Component (unchanged)
+function ThinkDetail({ content }) {
+    try {
+        const parsed = content.match(/name: (.*?), result: (.*)/);
+        const name = parsed[1];
+        const result = parsed[2];
+        
+        return (
+            <div className="space-y-6 animate-fade-in">
+                <div>
+                    <h3 className="text-lg font-semibold text-slate-800 mb-2">Think</h3>
+                    <div className="bg-purple-50 border border-purple-200 p-4 rounded-xl">
+                        <div className="flex items-center mb-2">
+                            <i className="fas fa-tools text-purple-600 mr-2"></i>
+                            <span className="font-medium text-purple-800">{name}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <label className="text-sm font-semibold text-slate-700 mb-2 block">Result</label>
+                    <div className="code-block p-4 rounded-xl text-sm overflow-x-auto">
+                        <pre className="whitespace-pre-wrap">{result}</pre>
+                    </div>
+                </div>
+            </div>
+        );
+    } catch {
+        return (
+            <div className="animate-fade-in">
+                <h3 className="text-lg font-semibold text-slate-800 mb-4">Think</h3>
+                <div className="code-block p-4 rounded-xl text-sm overflow-x-auto">
+                    <pre className="whitespace-pre-wrap">{content}</pre>
+                </div>
+            </div>
+        );
+    }
+}
+
 
 // Tool Call Detail Component (unchanged)
 function ToolCallDetail({ content }) {
