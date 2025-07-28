@@ -3,7 +3,7 @@
 
 **Pulsar Agent** is an open-source, evolving LLM agent framework designed to integrate seamlessly with Claude's [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) server ecosystem. It features intelligent task workflows, contextual memory, and tool usage.
 
-<i class="fa fa-home" aria-hidden="true"></i> [Pulsar Agent Website](https://pulsar-agent.cc)
+🌐 [Pulsar Agent Website](https://pulsar-agent.cc)
 
 ## Community
 
@@ -11,7 +11,7 @@ Pulsar Agent is inspired by our work in the Minecraft AI project, where we build
 
 We welcome collaboration, discussion, and ideas. Join us in the Minecraft AI Discord server to connect with our community and explore how Pulsar and other tools are shaping AI in virtual environments.
 
-<i class="fa fa-comments" aria-hidden="true"></i> Join the Minecraft AI Discord
+💬 Join the Minecraft AI Discord
 
 <a href="https://discord.gg/RKjspnTBmb" target="_blank"><img src="https://s2.loli.net/2025/04/18/CEjdFuZYA4pKsQD.png" alt="Official Discord Server" width="180" height="36"></a>
 
