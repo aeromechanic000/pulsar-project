@@ -57,13 +57,88 @@ We welcome collaboration, discussion, and ideas. Join us in the Minecraft AI Dis
 
 ## Quick Start
 
-In the default `configs.json`, Ollama with model `llama3.2` is used, make sure you have Ollama running correctly, or you can refer to the `configs-exmaple-1.json` to use other OpenAI compatible API. 
-
-**NOTE:** You can use [Pollinations AI](https://pollinations.ai/) without registration as the LLM provider. Just change the `name` of `provider` section to `Pollinations`. 
+### Download The Source Code
 
 ```bash
 git clone https://github.com/aeromechanic000/pulsar-project.git
 cd pulsar-project
+```
+
+### Configure The LLM API
+
+In the default `configs.json`, Pollinations AI (https://pollinations.ai/) is used. You can refer to the `configs-exmaple-1.json` to use other OpenAI compatible API, or `configs-exmaple-2.json` to use locally deployed Ollama. 
+
+A full list of supported APIs and models is available in the table below.
+
+<table>
+<tr>
+    <td> <b>API</b> </td> 
+    <td> <b>Model</b> </td>
+    <td> <b>Example</b> </td>
+</tr>
+<tr>
+    <td> OpenAI </td>
+    <td> gpt-4.1, gpt-4o <br> <a href="https://platform.openai.com/docs/models">full list of models</a> </td>
+    <td> "provider" : {"name" : "OpenAI", "model" : "gpt-4o", "api_key" : "[your_api_key]"} </td>
+</tr>
+<tr>
+    <td> Gemini </td>
+    <td> gemini-2.5-flash-preview-05-20 <br> <a href="https://ai.google.dev/gemini-api/docs/models">full list of models</a> </td>
+    <td> "provider" : {"name" : "Gemini", "model" : "gemini-2.5-flash-preview-05-20", "api_key" : "[your_api_key]"} </td>
+</tr>
+<tr>
+    <td> Anthropic </td>
+    <td> claude-opus-4-20250514 <br> <a href="https://docs.anthropic.com/en/docs/about-claude/models/overview">full list of models</a> </td>
+    <td> "provider" : {"name" : "Anthropic", "model" : "claude-opus-4-20250614", "api_key" : "[your_api_key]"} </td>
+</tr>
+<tr>
+    <td> Doubao </td>
+    <td> doubao-1-5-pro-32k-250115 <br> <a href="https://www.volcengine.com/docs/82379/1330310">full list of models</a> </td>
+    <td> "provider" : {"name" : "Doubao", "model" : "doubao-1-5-pro-32k-250115", "api_key" : "[your_api_key]"} </td>
+</tr>
+<tr>
+    <td> Qwen </td>
+    <td> qwen-max, qwen-plus <br> <a href="https://help.aliyun.com/zh/model-studio/getting-started/models">full list of models</a> </td>
+    <td> "provider" : {"name" : "Qwen", "model" : "qwen-max", "api_key" : "[your_api_key]"} </td>
+</tr>
+<tr>
+    <td> <a href="https://pollinations.ai/">Pollinations</a> </td>
+    <td> openai-large, gemini, deepseek <br> <a href="https://text.pollinations.ai/models">full list of models</a> </td>
+    <td> "provider" : {"name" : "Pollinations"} </td>
+</tr>
+<tr>
+    <td> OpenRouter </td>
+    <td> deepseek/deepseek-chat-v3-0324:free <br> <a href="https://openrouter.ai/models">full list of models</a> </td>
+    <td> "OpenRouter" : {"name" : "OpenRouter", "model" : "deepseek/deepseek-chat-v3-0324:free", "api_key" : "[your_api_key]"} </td>
+</tr>
+<tr>
+    <td> <a href="https://ollama.com/">Ollama</a> </td>
+    <td> llama3.2, llama3.1 <br> <a href="https://ollama.com/library">full list of models</a> </td>
+    <td> "provider" : {"name" : "Ollama", "model" : "llama3.1", "base_url" : "http://127.0.0.1:11434"} </td>
+</tr>
+</table>
+
+### Configure The LLM API
+
+For the MCP servers to work correctly, complete the absolute paths in the `mcpServers` section of `configs.json`.
+
+```
+"mcpServers" : {
+  "weather": {
+      "command": "[absolute_path_to_uv]/uv",
+      "args": [
+        "--directory",
+        "[absolute_path_to_pulsar]/pulsar-project/mcp_servers/weather",
+        "run",
+        "weather.py"
+      ]
+  } 
+}
+```
+
+### Start The Web Application
+
+```bash
 uv run app.py
 ```
 

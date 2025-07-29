@@ -130,6 +130,11 @@ def split_content_and_json(text) :
             content, data = text, {}
         if type(data) == dict and len(data) > 0 :
             break
+    if len(data) < 1 : 
+        try : 
+            data = json5.loads(text)
+        except Exception as e :
+            data = {}
     return content, data
 
 def is_int_convertible(value):

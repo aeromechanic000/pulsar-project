@@ -139,11 +139,19 @@ class FileExtractor:
     def get_file_extension(content_type: str) -> str:
         """Get appropriate file extension for content type."""
         extension_map = {
-            'markdown': 'md', 
-            'text': 'txt',
             'plan': 'md',
-            'note': 'txt',
+            'guide': 'md',
+            'tutorial': 'md',
+            'recipe': 'md',
             'article': 'md',
+            'report': 'md',
+            'manual': 'md',
+            'novel': 'txt',
+            'note': 'txt',
+            'journal': 'txt',
+            'poem': 'txt',
+            'story': 'txt',
+            'dialogue': 'txt',
         }
         return extension_map.get(content_type.lower(), 'txt')
     
@@ -160,14 +168,13 @@ Look for content like:
 - Plans, guides, or tutorials  
 - Notes, documentation, or articles
 - Recipes, instructions, or procedures
-- Letters, emails, or formal communications
-- Code snippets or technical documentation
+- Technical documentation
 - Any other coherent, standalone content
 
 For each piece you identify, provide:
 - start_marker: A unique phrase from the beginning of the content (max 50 chars)
 - end_marker: A unique phrase from the end of the content (max 50 chars) 
-- content_type: The type of content (plan, note, article, markdown, text, etc.)
+- content_type: The type of content, one of [plan, guide, tutorial, recipe, article, report, manual, novel, note, journal, poem, story, dialogue]
 - title: A descriptive title for the file
 - description: Brief description of what this content contains
 

@@ -8,3 +8,4 @@ fossil_ignore.sh
 api/__pycache__/*
 logs/*
 data/*
+configs-test.json

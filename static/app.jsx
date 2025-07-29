@@ -28,6 +28,38 @@ const truncate_string = (str, maxLength) => {
     return null
 } 
 
+// File type configuration based on your extension map
+const FILE_TYPE_CONFIG = {
+    // Markdown types (render as markdown)
+    'plan': { extension: 'md', renderAs: 'markdown', color: 'green', icon: 'fas fa-file-alt' },
+    'guide': { extension: 'md', renderAs: 'markdown', color: 'green', icon: 'fas fa-file-alt' },
+    'tutorial': { extension: 'md', renderAs: 'markdown', color: 'green', icon: 'fas fa-file-alt' },
+    'recipe': { extension: 'md', renderAs: 'markdown', color: 'green', icon: 'fas fa-file-alt' },
+    'article': { extension: 'md', renderAs: 'markdown', color: 'green', icon: 'fas fa-file-alt' },
+    'report': { extension: 'md', renderAs: 'markdown', color: 'green', icon: 'fas fa-file-alt' },
+    'manual': { extension: 'md', renderAs: 'markdown', color: 'green', icon: 'fas fa-file-alt' },
+    'changelog': { extension: 'md', renderAs: 'markdown', color: 'green', icon: 'fas fa-file-alt' },
+    'logbook': { extension: 'md', renderAs: 'markdown', color: 'green', icon: 'fas fa-file-alt' },
+    
+    // Text types (render as plain text)
+    'novel': { extension: 'txt', renderAs: 'text', color: 'yellow', icon: 'fas fa-book' },
+    'note': { extension: 'txt', renderAs: 'text', color: 'yellow', icon: 'fas fa-book' },
+    'journal': { extension: 'txt', renderAs: 'text', color: 'yellow', icon: 'fas fa-book' },
+    'poem': { extension: 'txt', renderAs: 'text', color: 'yellow', icon: 'fas fa-book' },
+    'story': { extension: 'txt', renderAs: 'text', color: 'yellow', icon: 'fas fa-book' },
+    'dialogue': { extension: 'txt', renderAs: 'text', color: 'yellow', icon: 'fas fa-book' },
+    
+    // Keep existing types for backward compatibility
+    'code': { extension: 'txt', renderAs: 'code', color: 'blue', icon: 'fas fa-code' },
+    'data': { extension: 'json', renderAs: 'code', color: 'purple', icon: 'fas fa-database' },
+    'html': { extension: 'html', renderAs: 'code', color: 'orange', icon: 'fas fa-globe' }
+};
+
+// Helper function to get file type configuration
+const getFileTypeConfig = (fileType) => {
+    return FILE_TYPE_CONFIG[fileType] || { extension: 'txt', renderAs: 'text', color: 'slate', icon: 'fas fa-file' };
+};
+
 // Socket connection
 const socket = io();
 
@@ -92,7 +124,7 @@ function App() {
     const initializeClient = async () => {
         setLoading(true);
         try {
-            await api.post('/initialize', { config_path: 'configs.json' });
+            await api.post('/initialize', {});
             setIsInitialized(true);
             await loadAllData();
         } catch (error) {
@@ -1096,32 +1128,23 @@ function LogBlock({ log, index, isSelected, onSelect, onShowDetail }) {
                         Extracted Files ({Object.keys(log.files).length})
                     </p>
                     <div className="flex flex-wrap gap-1">
-                        {Object.entries(log.files).map(([filename, file]) => (
-                            <button
-                                key={filename}
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    onShowDetail({ type: 'file', file: file, log_index: index });
-                                }}
-                                className={`text-xs px-2 py-1 rounded-lg transition-colors duration-200 ${
-                                    file.type === 'code' ? 'bg-blue-100 hover:bg-blue-200 text-blue-700' :
-                                    file.type === 'data' ? 'bg-purple-100 hover:bg-purple-200 text-purple-700' :
-                                    file.type === 'html' ? 'bg-orange-100 hover:bg-orange-200 text-orange-700' :
-                                    file.type === 'article' ? 'bg-green-100 hover:bg-green-200 text-green-700' :
-                                    'bg-slate-100 hover:bg-slate-200 text-slate-700'
-                                }`}
-                                title={`${file.type} - ${file.size} chars`}
-                            >
-                                <i className={`mr-1 ${
-                                    file.type === 'code' ? 'fas fa-code' :
-                                    file.type === 'data' ? 'fas fa-database' :
-                                    file.type === 'html' ? 'fas fa-globe' :
-                                    file.type === 'article' ? 'fas fa-file-alt' :
-                                    'fas fa-file'
-                                }`}></i>
-                                {filename}
-                            </button>
-                        ))}
+                        {Object.entries(log.files).map(([filename, file]) => {
+                            const typeConfig = getFileTypeConfig(file.type);
+                            return (
+                                <button
+                                    key={filename}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onShowDetail({ type: 'file', file: file, log_index: index });
+                                    }}
+                                    className={`text-xs px-2 py-1 rounded-lg transition-colors duration-200 bg-${typeConfig.color}-100 hover:bg-${typeConfig.color}-200 text-${typeConfig.color}-700`}
+                                    title={`${file.type} - ${file.size} chars`}
+                                >
+                                    <i className={`mr-1 ${typeConfig.icon}`}></i>
+                                    {filename}
+                                </button>
+                            );
+                        })}
                     </div>
                 </div>
             )}
@@ -1267,46 +1290,32 @@ function LogDetail({ log, logIndex, onShowDetail}) {
                 </div>
             )}
 
-            {/* Files Section */}
-            {log.files && Object.keys(log.files).length > 0 && (
-                <div className="bg-white border border-slate-200 rounded-lg p-4">
-                    <h4 className="text-sm font-semibold text-slate-700 mb-3 flex items-center">
-                        <i className="fas fa-file-code mr-2"></i>
-                        Extracted Files ({Object.keys(log.files).length})
-                    </h4>
-                    <div className="space-y-3">
-                        {Object.entries(log.files).map(([filename, file]) => (
-                            <div key={filename} className="bg-slate-50 border border-slate-200 rounded-lg p-3">
-                                <div className="flex items-center justify-between mb-2">
-                                    <div className="flex items-center">
-                                        <i className={`mr-2 ${
-                                            file.type === 'code' ? 'fas fa-code text-blue-600' :
-                                            file.type === 'data' ? 'fas fa-database text-purple-600' :
-                                            file.type === 'html' ? 'fas fa-globe text-orange-600' :
-                                            file.type === 'article' ? 'fas fa-file-alt text-green-600' :
-                                            'fas fa-file text-slate-600'
-                                        }`}></i>
-                                        <span className="font-medium text-slate-800">{filename}</span>
-                                    </div>
-                                    <div className="flex items-center space-x-2">
-                                        <span className="text-xs text-slate-500">{file.type}</span>
-                                        <span className="text-xs text-slate-500">{file.size} chars</span>
-                                    </div>
-                                </div>
-                                <div className="text-xs text-slate-600 bg-white p-2 rounded border max-h-32 overflow-y-auto">
-                                    <pre className="whitespace-pre-wrap">{file.content.substring(0, 200)}{file.content.length > 200 ? '...' : ''}</pre>
-                                </div>
-                                <button
-                                    onClick={() => onShowDetail({ type: 'file', file: file, log_index: logIndex, parent: { type: 'log_detail', log: log, log_index: logIndex } })}
-                                    className="mt-2 text-xs text-indigo-600 hover:text-indigo-800 font-medium"
-                                >
-                                    View Full File →
-                                </button>
+            {Object.entries(log.files).map(([filename, file]) => {
+                const typeConfig = getFileTypeConfig(file.type);
+                return (
+                    <div key={filename} className="bg-slate-50 border border-slate-200 rounded-lg p-3">
+                        <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center">
+                                <i className={`mr-2 ${typeConfig.icon} text-${typeConfig.color}-600`}></i>
+                                <span className="font-medium text-slate-800">{filename}</span>
                             </div>
-                        ))}
+                            <div className="flex items-center space-x-2">
+                                <span className="text-xs text-slate-500">{file.type}</span>
+                                <span className="text-xs text-slate-500">{file.size} chars</span>
+                            </div>
+                        </div>
+                        <div className="text-xs text-slate-600 bg-white p-2 rounded border max-h-32 overflow-y-auto">
+                            <pre className="whitespace-pre-wrap">{file.content.substring(0, 200)}{file.content.length > 200 ? '...' : ''}</pre>
+                        </div>
+                        <button
+                            onClick={() => onShowDetail({ type: 'file', file: file, log_index: logIndex, parent: { type: 'log_detail', log: log, log_index: logIndex } })}
+                            className="mt-2 text-xs text-indigo-600 hover:text-indigo-800 font-medium"
+                        >
+                            View Full File →
+                        </button>
                     </div>
-                </div>
-            )}
+                );
+            })}
 
             {/* Statistics */}
             <div className="bg-white border border-slate-200 rounded-lg p-4">
@@ -1562,39 +1571,16 @@ function TaskFieldDetail({ field, value }) {
     );
 }
 
+// MODIFIED FileDetail Component to handle only specified file types
 function FileDetail({ file, parent }) {
     // Function to handle file download
     const downloadFile = () => {
         try {
-            // Determine file extension based on type or filename
-            let extension = '';
-            if (file.filename && file.filename.includes('.')) {
-                extension = file.filename.split('.').pop();
-            } else {
-                // Fallback to type-based extension
-                switch (file.type) {
-                    case 'plan':
-                        extension = 'md';
-                        break;
-                    case 'note':
-                        extension = 'md';
-                        break;
-                    case 'article':
-                        extension = 'md';
-                        break;
-                    case 'markdown':
-                        extension = 'md';
-                        break;
-                    case 'txt':
-                        extension = 'txt';
-                        break;
-                    default:
-                        extension = 'txt';
-                }
-            }
-
-            // Create filename
-            const filename = file.filename || `file_${Date.now()}.${extension}`;
+            const typeConfig = getFileTypeConfig(file.type);
+            const extension = typeConfig.extension;
+            
+            // Create filename with proper extension
+            const filename = file.filename || `${file.type}_${Date.now()}.${extension}`;
             
             // Create blob and download
             const blob = new Blob([file.content], { type: 'text/plain;charset=utf-8' });
@@ -1612,6 +1598,8 @@ function FileDetail({ file, parent }) {
         }
     };
 
+    const typeConfig = getFileTypeConfig(file.type);
+
     return (
         <div className="space-y-6 animate-fade-in">
             {parent && (
@@ -1627,7 +1615,7 @@ function FileDetail({ file, parent }) {
             
             <div>
                 <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-slate-800">{file.filename || 'Untitled File'}</h3>
+                    <h3 className="text-lg font-semibold text-slate-800">{file.filename || `Untitled ${file.type}`}</h3>
                     <button
                         onClick={downloadFile}
                         className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover-lift flex items-center"
@@ -1639,11 +1627,14 @@ function FileDetail({ file, parent }) {
                 </div>
                 
                 <div className="flex flex-wrap gap-2 mb-4">
-                    <span className="bg-blue-100 text-blue-700 text-xs font-medium px-2 py-1 rounded-full">
+                    <span className={`bg-${typeConfig.color}-100 text-${typeConfig.color}-700 text-xs font-medium px-2 py-1 rounded-full`}>
                         {file.type}
                     </span>
                     <span className="bg-slate-100 text-slate-600 text-xs font-medium px-2 py-1 rounded-full">
                         {file.size} chars
+                    </span>
+                    <span className="bg-blue-100 text-blue-700 text-xs font-medium px-2 py-1 rounded-full">
+                        .{typeConfig.extension}
                     </span>
                     {file.language && (
                         <span className="bg-green-100 text-green-700 text-xs font-medium px-2 py-1 rounded-full">
@@ -1656,20 +1647,20 @@ function FileDetail({ file, parent }) {
             <div>
                 <div>
                     <label className="text-sm font-semibold text-slate-700 mb-2 block">Content</label>
-                    {/* Check if it's a markdown file and render accordingly */}
-                    {(file.type === 'markdown' || 
-                    file.type === 'article' || 
-                    file.type === 'note' || 
-                    file.type === 'plan' || 
-                    (file.filename && (file.filename.endsWith('.md') || file.filename.endsWith('.markdown')))) ? (
-                        // Render as markdown
+                    {typeConfig.renderAs === 'markdown' ? (
+                        // Render as markdown for supported types
                         <div className="bg-white border border-slate-200 p-4 rounded-xl text-sm overflow-x-auto">
                             <MarkdownContent content={file.content} />
                         </div>
-                    ) : (
-                        // Render as code/plain text
+                    ) : typeConfig.renderAs === 'code' ? (
+                        // Render as code
                         <div className="bg-slate-900 text-slate-100 p-4 rounded-xl text-sm overflow-x-auto">
                             <pre className="whitespace-pre-wrap text-slate-100">{file.content}</pre>
+                        </div>
+                    ) : (
+                        // Render as plain text
+                        <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl text-sm overflow-x-auto">
+                            <pre className="whitespace-pre-wrap text-slate-800">{file.content}</pre>
                         </div>
                     )}
                 </div>

@@ -16,6 +16,7 @@ CORS(app)
 socketio = SocketIO(app, cors_allowed_origins="*")
 
 # Global client instance and event loop management
+init_config_path = "configs.json"
 client_instance = None
 client_loop = None
 client_thread = None
@@ -93,16 +94,17 @@ def serve_static(filename):
 def initialize_client():
     """Initialize the MCP client with configuration"""
     global client_instance
+    global init_config_path 
     
     try:
         # Ensure the client event loop is running
         ensure_client_loop()
         
+        init_config = read_json(init_config_path)
         config_data = request.get_json()
-        config_path = config_data.get('config_path', 'configs.json')
-        
-        # Load configuration
-        config = read_json(config_path)
+        config = config_data.get('config', init_config)
+
+        print("*** :", config)
         
         # Initialize client in its own event loop
         from client import Client
@@ -535,6 +537,7 @@ os.makedirs('data/task', exist_ok=True)
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Setup and run the program.")
     parser.add_argument('--save-logs', action='store_true', help='Enable log saving')
+    parser.add_argument('--config-path', type=str, default="configs.json", help='Path to the config file')
     args = parser.parse_args()
     # Setup logging
 
@@ -549,7 +552,10 @@ if __name__ == '__main__':
     
     add_log("Starting Flask server on http://localhost:9898")
     
+
     try:
+        init_config_path = args.config_path 
+        print("* init_configs_path", init_config_path)
         socketio.run(app, host='0.0.0.0', port=9898, debug=False, allow_unsafe_werkzeug=True)
     except KeyboardInterrupt:
         add_log("Server stopped by user")
