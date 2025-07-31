@@ -218,6 +218,7 @@ function App() {
     
         const userMessage = { role: 'user', content: currentQuery, timestamp: new Date().toISOString() };
         setChatMessages(prev => [...prev, userMessage]);
+        setCurrentQuery('');
         
         setLoading(true);
         setIsProcessingQuery(true);  // ** ADD THIS **
@@ -236,7 +237,6 @@ function App() {
                 timestamp: new Date().toISOString()
             };
             setChatMessages(prev => [...prev, assistantMessage]);
-            setCurrentQuery('');
             
             // Update working task if response includes updated task
             if (response.updated_task) {
@@ -251,6 +251,7 @@ function App() {
             
             // Refresh general data
             await loadAllData();
+            setPollDuringProcessing(false);
             updateStatus('Task data updated successfully', 'success');
 
             // Clear status after 3 seconds
@@ -835,8 +836,20 @@ function TaskPanel({ task, selectedLogIndex, onSelectLog, onShowDetail }) {
         );
     }
 
+    const scrollRef = useRef(null);
+
+    useEffect(() => {
+    if (scrollRef.current) {
+        const scrollContainer = scrollRef.current;
+        scrollContainer.scrollTo({
+        top: scrollContainer.scrollHeight,
+        behavior: 'smooth'
+        });
+    }
+    }, [task.logs]);
+
     return (
-        <div className="task-panel bg-white panel-border flex flex-col">
+        <div className="task-panel bg-white panel-border flex flex-col" ref={scrollRef}>
             {/* Header Section - Unchanged */}
             <div className="p-6 border-b-2 border-slate-100">
                 <div className="flex items-center justify-between mb-2">

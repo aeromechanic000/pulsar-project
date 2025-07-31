@@ -198,11 +198,11 @@ class Client:
     async def _context_to_prompt(self, query) -> str:
         """Convert message format to prompt string"""
         prompt_parts = ['''
-I am an AI assistant, which is good at answer user's query from the conversations, based on the memory status and task status. In generating the response, I will consider to answer with four parts: 
+You are an AI assistant, which is good at answer user's query from the conversations, based on the memory status and task status. In generating the response, you will consider to answer with four parts: 
 1. Think: analyze the context and think about what to do next.
 2. Text: the text response to the user's query.
-3. Memory Operation: if I need to perform a memory operation, I will return the operation name and parameters. Make sure a memroy operation is really necessary and not redundant and not repetitive. 
-4. Tool: if I need to use a tool, I will return the tool name and parameters. Make sure a memroy operation is really necessary and not redundant and not repetitive. 
+3. Memory Operation: if you need to perform a memory operation, return the operation name and parameters. Make sure a memroy operation is really necessary and not redundant and not repetitive. 
+4. Tool: if you need to use a tool, return the tool name and parameters. Make sure a memroy operation is really necessary and not redundant and not repetitive. 
 
 Furthermore, you have to explicitly indicate if you have finished the generation of response, or need to perform more steps or stop and wait for user's next query. This is important if you need multiple steps to answer current query well. Pay attentsion to following rules: 
 1. if you are not sure what to do next, you should leave the decision to the user. 
@@ -309,6 +309,7 @@ The result should be formatted in **JSON** dictionary and enclosed in **triple b
         iter = 0
         
         while iter < max_iters:
+            iter_message_index = len(self.messages)
             iter += 1
             
             # Get LLM response
@@ -335,7 +336,6 @@ The result should be formatted in **JSON** dictionary and enclosed in **triple b
 
                 elif content["type"] == "mem_op":
                     add_log("Process memory operation response", print = False)
-                    need_next_interation = True 
                     op_name = content["name"]
                     op_args = content["args"]
                     
@@ -407,12 +407,16 @@ The result should be formatted in **JSON** dictionary and enclosed in **triple b
                             "content": error_msg,
                         })
 
-            await self.task_manager.update(query, self.messages[new_message_index:])
+            if iter_message_index < len(self.messages) :
+                await self.task_manager.update(query, self.messages[iter_message_index:])
 
             if not need_next_interation:
                 break
             
-        response = self.messages[new_message_index:]
+        response = [] 
+        if new_message_index < len(self.messages) :
+            response = self.messages[new_message_index:]
+
         return response
     
     async def cleanup(self):

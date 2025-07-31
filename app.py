@@ -104,8 +104,6 @@ def initialize_client():
         config_data = request.get_json()
         config = config_data.get('config', init_config)
 
-        print("*** :", config)
-        
         # Initialize client in its own event loop
         from client import Client
         client_instance = Client()
@@ -524,7 +522,6 @@ atexit.register(cleanup)
 
 signal.signal(signal.SIGINT, signal_handler)
 signal.signal(signal.SIGTERM, signal_handler)
-
 
 # Create necessary directories
 os.makedirs('static', exist_ok=True)

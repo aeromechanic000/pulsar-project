@@ -72,6 +72,10 @@ class OllamaProvider(LLMProvider):
                     return  response_data.get("response", "")
                 else :
                     add_log(f"Invalid provider response: {response}", "error")
+                    if response.status == 400:
+                        config = {key : self.config[key] for key in ["name", "model", "base_url", "env_name"] if key in self.config}
+                        add_log(f"Check the model name and other configs: {config}", "error")
+
 
 class OpenProvider(LLMProvider):
     """Implementation for Provider with OpenAI compatible API"""
@@ -82,6 +86,17 @@ class OpenProvider(LLMProvider):
         self.model = self.config.get("model", "") 
         self.api_key = self.config.get("api_key", "") 
         self.env_name = self.config.get("env_name", "") 
+
+        if len(self.base_url.strip()) < 1 : 
+            if self.config["name"] == "Doubao" :
+                self.base_url = "https://ark.cn-beijing.volces.com/api/v3/"
+            elif self.config["name"] == "Qwen" :
+                self.base_url = "https://dashscope.aliyuncs.com/compatible-mode/v1/"
+            elif self.config["name"] == "OpenRouter" :
+                self.base_url = "https://api.openrouter.ai/v1/"
+        
+        if len(self.env_name.strip()) < 1 : 
+            self.env_name = f"{self.config['name'].upper()}_API_KEY"
 
         if len(self.api_key.strip()) < 1 and len(self.env_name.strip()) > 0 : 
             self.api_key = os.environ.get(self.env_name)
@@ -100,6 +115,9 @@ class OpenProvider(LLMProvider):
                 "stream" : False,
             }
 
+            if self.config["name"] == "Qwen" and self.model.startswith("qwen3-") :
+                payload["enable_thinking"] = False 
+
             async with session.post(urljoin(self.base_url, "chat/completions"), headers=headers, json=payload) as response:
                 if response.status == 200:
                     response_data = await response.json()
@@ -113,6 +131,9 @@ class OpenProvider(LLMProvider):
                             return reasoning_content
                 else :
                     add_log(f"Invalid provider response: {response}", "error")
+                    if response.status == 400:
+                        config = {key : self.config[key] for key in ["name", "model", "base_url", "env_name"] if key in self.config}
+                        add_log(f"Check the model name and other configs: {config}", "error")
 
 class OpenAIProvider(LLMProvider):
     """Implementation for OpenAI API"""
@@ -148,6 +169,10 @@ class OpenAIProvider(LLMProvider):
                         return response_data["output"][0]["content"][0]["text"]
                 else :
                     add_log(f"Invalid provider response: {response}", "error")
+                    if response.status == 400:
+                        config = {key : self.config[key] for key in ["name", "model", "base_url", "env_name"] if key in self.config}
+                        add_log(f"Check the model name and other configs: {config}", "error")
+
 
 class AnthropicProvider(LLMProvider):
     """Implementation for Anthropic API"""
@@ -182,6 +207,10 @@ class AnthropicProvider(LLMProvider):
                     return response_data["content"][0]["text"]
                 else :
                     add_log(f"Invalid provider response: {response}", "error")
+                    if response.status == 400:
+                        config = {key : self.config[key] for key in ["name", "model", "base_url", "env_name"] if key in self.config}
+                        add_log(f"Check the model name and other configs: {config}", "error")
+
 
 class GeminiProvider(LLMProvider):
     """Implementation for Gemini API"""
@@ -218,3 +247,6 @@ class GeminiProvider(LLMProvider):
                         return response_data["candidates"][0]["content"]["parts"][0]["text"]
                 else :
                     add_log(f"Invalid provider response: {response}", "error")
+                    if response.status == 400:
+                        config = {key : self.config[key] for key in ["name", "model", "base_url", "env_name"] if key in self.config}
+                        add_log(f"Check the model name and other configs: {config}", "error")
