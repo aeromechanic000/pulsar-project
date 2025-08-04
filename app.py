@@ -528,6 +528,7 @@ os.makedirs('static', exist_ok=True)
 os.makedirs('templates', exist_ok=True)
 os.makedirs('logs', exist_ok=True)
 os.makedirs('data', exist_ok=True)
+os.makedirs('.mcp_servers', exist_ok=True)
 os.makedirs('data/memory', exist_ok=True)
 os.makedirs('data/task', exist_ok=True)
 
@@ -535,6 +536,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Setup and run the program.")
     parser.add_argument('--save-logs', action='store_true', help='Enable log saving')
     parser.add_argument('--config-path', type=str, default="configs.json", help='Path to the config file')
+    parser.add_argument('--host', type=str, default="127.0.0.1", help='Host addresses to accept.')
+    parser.add_argument('--port', type=int, default=9898, help='Port to listen.')
     args = parser.parse_args()
     # Setup logging
 
@@ -547,13 +550,11 @@ if __name__ == '__main__':
             level=logging.DEBUG,
         )
     
-    add_log("Starting Flask server on http://localhost:9898")
-    
+    add_log(f"Starting Flask server on http://localhost:{args.port}")
 
     try:
         init_config_path = args.config_path 
-        print("* init_configs_path", init_config_path)
-        socketio.run(app, host='0.0.0.0', port=9898, debug=False, allow_unsafe_werkzeug=True)
+        socketio.run(app, host=args.host, port=args.port, debug=False, allow_unsafe_werkzeug=True)
     except KeyboardInterrupt:
         add_log("Server stopped by user")
     except Exception as e:

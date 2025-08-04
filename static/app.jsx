@@ -1629,14 +1629,7 @@ function FileDetail({ file, parent }) {
             <div>
                 <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-semibold text-slate-800">{file.filename || `Untitled ${file.type}`}</h3>
-                    <button
-                        onClick={downloadFile}
-                        className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover-lift flex items-center"
-                        title="Download file"
-                    >
-                        <i className="fas fa-download mr-2"></i>
-                        Download
-                    </button>
+                    
                 </div>
                 
                 <div className="flex flex-wrap gap-2 mb-4">
@@ -1676,6 +1669,16 @@ function FileDetail({ file, parent }) {
                             <pre className="whitespace-pre-wrap text-slate-800">{file.content}</pre>
                         </div>
                     )}
+                </div>
+                <div className="mt-4 mb-4">
+                    <button
+                        onClick={downloadFile}
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover-lift flex items-center"
+                        title="Download file"
+                    >
+                        <i className="fas fa-download mr-2"></i>
+                        Download
+                    </button>
                 </div>
             </div>
             

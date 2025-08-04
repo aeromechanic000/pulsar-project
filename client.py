@@ -1,104 +1,12 @@
 import os, sys, asyncio, json
 import argparse, logging
-from contextlib import AsyncExitStack
 from typing import Optional, Dict, List, Tuple, Any
 
-from mcp import ClientSession, StdioServerParameters
-from mcp.client.stdio import stdio_client
-
-from dotenv import load_dotenv
-
-load_dotenv()  # load environment variables from .env
-
+from manager import MCPServerManager, collect_mcp_server_configs
 from memory import *
 from task import *
 from provider import *
 from utils import *
-
-class MCPServerManager:
-    """Manages multiple MCP server connections"""
-    
-    def __init__(self):
-        self.servers: Dict[str, Dict] = {}
-        self.sessions: Dict[str, ClientSession] = {}
-        self.exit_stack = AsyncExitStack()
-    
-    async def load_servers_config(self, configs):
-        """Load server configurations from JSON file"""
-        self.servers = configs
-        add_log(f"Loaded {len(self.servers)} MCP server configurations")
-    
-    async def connect_all_servers(self):
-        """Connect to all configured servers"""
-        for server_name, server_config in self.servers.items():
-            try:
-                await self._connect_server(server_name, server_config)
-                add_log(f"Connected to MCP server: {server_name}", label = "success")
-            except Exception as e:
-                add_log(f"Failed to connect to MCP server {server_name}: {e}", label = "error")
-    
-    async def _connect_server(self, server_name: str, server_config: Dict):
-        """Connect to a single MCP server"""
-        command = server_config["command"]
-        args = server_config.get("args", [])
-        env = server_config.get("env")
-        
-        server_params = StdioServerParameters(
-            command = command,
-            args=args,
-            env=env
-        )
-        
-        stdio_transport = await self.exit_stack.enter_async_context(
-            stdio_client(server_params)
-        )
-        stdio, write = stdio_transport
-        session = await self.exit_stack.enter_async_context(
-            ClientSession(stdio, write)
-        )
-        
-        await session.initialize()
-        self.sessions[server_name] = session
-    
-    async def get_tools(self) -> Dict[str, Any]:
-        """Get all available tools from all connected servers"""
-        all_tools = {}
-        
-        for server_name, session in self.sessions.items():
-            try:
-                response = await session.list_tools()
-                for tool in response.tools:
-                    tool_info = {
-                        "name": tool.name,
-                        "description": tool.description,
-                        "input_schema": tool.inputSchema,
-                        "server": server_name
-                    }
-                    all_tools[tool.name] = tool_info
-            except Exception as e:
-                add_log(f"Error getting tools from {server_name}: {e}", label = "error")
-        
-        return all_tools
-    
-    async def call_tool(self, tool_name: str, tool_args: Dict) -> Any:
-        """Call a tool on the appropriate server"""
-        # Find which server has this tool
-        for server_name, session in self.sessions.items():
-            try:
-                response = await session.list_tools()
-                tool_names = [tool.name for tool in response.tools]
-                
-                if tool_name in tool_names:
-                    result = await session.call_tool(tool_name, tool_args)
-                    return result
-            except Exception as e:
-                add_log(f"Error calling tool {tool_name} on {server_name}: {e}", label = "error")
-        
-        raise ValueError(f"Tool {tool_name} not found on any connected server")
-    
-    async def cleanup(self):
-        """Clean up all server connections"""
-        await self.exit_stack.aclose()
 
 class Client:
     """Pulsar Agent client with multi-server support and configurable LLM providers"""
@@ -123,7 +31,8 @@ class Client:
         else:
             add_log(f"Unknown provider: {provider_name}", label = "error")
 
-        await self.server_manager.load_servers_config(configs.get("mcpServers", {}))
+        mcp_severs_configs = collect_mcp_server_configs()
+        await self.server_manager.load_servers_config(mcp_severs_configs)
         await self.server_manager.connect_all_servers()
 
         self.task_manager.load_config(self.configs.get("task", {}))
@@ -152,10 +61,10 @@ class Client:
         }
         return info
     
-    async def react(self, query) -> Tuple[Dict, bool] :
+    async def react(self, query, tools : List = None) -> Tuple[Dict, bool] :
         response = {"content" : []}
         # Convert messages to a single prompt
-        prompt = await self._context_to_prompt(query)
+        prompt = await self._context_to_prompt(query, tools)
         add_log(f"Prompt: {prompt}", label="log", print = False)
 
         text_response = await self.provider.generate_response(prompt)
@@ -195,7 +104,7 @@ class Client:
         add_log(f"Response: {response}", label = "log", print = False)
         return response, dict_response.get("finished", True)
 
-    async def _context_to_prompt(self, query) -> str:
+    async def _context_to_prompt(self, query, tools : List = None) -> str:
         """Convert message format to prompt string"""
         prompt_parts = ['''
 You are an AI assistant, which is good at answer user's query from the conversations, based on the memory status and task status. In generating the response, you will consider to answer with four parts: 
@@ -222,7 +131,9 @@ The result should be formatted in **JSON** dictionary and enclosed in **triple b
     - 'tool': ONLY USED when you need to use a tool (from the available tools), the value is a dictionary with the tool name and parameters:
         - 'name': The name of the tool to use.
         - 'args': A dictionary of arguments for the tool.
-    - 'finished': A JSON bool value indicating if your actions are finished, set 'true' to stop processing and send response to the user; set 'false' to continue the actions. When you used a tool or you need more steps to collect information to complete the response, you should set 'finished' to 'false'.
+    - 'finished': A JSON bool value indicating if your actions are finished, set 'true' to stop processing and send the final response to the user; set 'false' to continue for more actions to complete the final answer. When you used a tool or you need more steps to collect information to complete the response, you should set 'finished' to 'false'. Note that
+        - If you need to perform more thinking or collect relevant data via tool calling, make sure to set 'finished' to 'false'. 
+        - If you need the user to provider more information to continue the processing, make sure to set 'finished' to 'true'. 
 ''']
 
         common_sense_text = await self.get_common_sense_context()
@@ -253,11 +164,13 @@ The result should be formatted in **JSON** dictionary and enclosed in **triple b
             prompt_parts.append(f"\n## Dynamic Task:\n{dynamic_task_text}")
             
         # Get all available tools
-        tools = await self.server_manager.get_tools()
+        all_tools = await self.server_manager.get_tools()
         # Format tools for LLM (remove server info for cleaner interface)
-        if len(tools) > 0 :
+        if len(all_tools) > 0 :
             prompt_parts.append("\n## Available Tools:")
-            for tool in tools.values() :
+            for tool in all_tools.values() :
+                if isinstance(tools, List) and tool["name"] not in tools : 
+                    continue
                 prompt_parts.append(f"- {tool['name']}: '{tool['description']}")
                 prompt_parts.append(f"  Input schema: {json.dumps(tool['input_schema'])}")
         
@@ -300,7 +213,7 @@ The result should be formatted in **JSON** dictionary and enclosed in **triple b
         
         return output 
 
-    async def process_query(self, query: str) -> str:
+    async def process_query(self, query: str, tools : List = None) -> str:
         """Process a query using the LLM and available tools"""
         self.messages.append({"role": "user", "content": query})
         new_message_index = len(self.messages) 
@@ -313,7 +226,7 @@ The result should be formatted in **JSON** dictionary and enclosed in **triple b
             iter += 1
             
             # Get LLM response
-            response, finished = await self.react(query)
+            response, finished = await self.react(query, tools)
             need_next_interation = not finished 
             response_text = ""
 
@@ -522,7 +435,6 @@ if __name__ == "__main__":
     os.makedirs('data', exist_ok=True)
     os.makedirs('data/memory', exist_ok=True)
     os.makedirs('data/task', exist_ok=True)
-
-    
+    os.makedirs('.mcp_servers', exist_ok=True)
 
     asyncio.run(main())

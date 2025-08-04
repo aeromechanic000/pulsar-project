@@ -161,15 +161,13 @@ class FileExtractor:
             return []
         
         prompt = f"""
-Analyze the following text and identify distinct pieces of content that would be better as independent files.
+You are an expert content extractor. Your task is to scan the following text and extract only **formal, self-contained pieces of content** that are suitable to be saved as independent files. Ignore conversational replies, follow-up questions, reminders, or incomplete thoughts.
 
-Look for content like:
-- Stories, novels, or creative writing pieces
-- Plans, guides, or tutorials  
-- Notes, documentation, or articles
-- Recipes, instructions, or procedures
-- Technical documentation
-- Any other coherent, standalone content
+Only extract content that clearly fits one of the following formats:
+- **Creative works**: stories, poems, novels, scripts
+- **Structured knowledge**: tutorials, plans, guides, how-to instructions
+- **Documentation**: notes, technical writeups, articles, reports, specifications
+- **Processes or procedures**: recipes, step-by-step instructions, workflows
 
 For each piece you identify, provide:
 - start_marker: A unique phrase from the beginning of the content (max 50 chars)

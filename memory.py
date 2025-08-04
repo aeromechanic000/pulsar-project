@@ -92,6 +92,21 @@ class Memory :
     
     async def get_static_context(self) -> str : 
         memory_parts = [] 
+        memory_parts.append("\n## Memory Usage:")
+        memory_parts.append(
+            "The memory should be used when you need to remember something that is useful "
+            "across different tasks — that is, general facts, principles, or observations "
+            "that are not tied to a single task but could improve future performance. "
+            "This includes knowledge discovered during tasks, preferences, learned skills, "
+            "entity-specific facts, and other reusable context."
+        )
+
+        memory_parts.append("\nHere are some **rules** for memory usage:")
+        memory_parts.append("1. **Summarize** when the information is lengthy but the key idea can be compacted — e.g., summarizing a long chat or log into a key insight.")
+        memory_parts.append("2. **Add a new topic** when the fact or knowledge is new and hasn't been stored before — e.g., discovering a new tool, person, or concept.")
+        memory_parts.append("3. **Update a topic** when you gain a better understanding or more accurate version of something already stored — e.g., correcting or enriching a past memory.")
+        memory_parts.append("4. **Use the database** (persistent memory) when the knowledge should be preserved across sessions — e.g., long-term goals, learned strategies, user preferences.")
+
         memory_parts.append("\n## Available Memory Operations:")
         operations = await self.get_operations()
         for op in operations.values() :
@@ -101,10 +116,31 @@ class Memory :
 
     async def get_dynamic_context(self, query = None) -> str : 
         memory_parts = [] 
+        if len(self.summary) > 0 :
+            latest_key = max(self.summary.keys())
+            memory_parts.append(f"\n## Memory Summary:\n{self.summary[latest_key]}")
+
         if len(self.records) > 0 :
             memory_parts.append("\n## Latest Memory Records:")
             for record in self.records[- self.config.get("latest_record_num", 10):] :
                 memory_parts.append(f"- [{record['timestamp']}] {record['content']}")
+
+        if len(self.topics) > 0 : 
+            topic_records = [f"'{key}': {topic['description']}" for key, topic in self.topics.items()] 
+            relevant_topics = simple_rag(query, topic_records, top_k = self.config.get("relevant_topics_num", 3)) 
+            if len(relevant_topics) > 0 : 
+                memory_parts.append("\n## Memory Topics:")
+                for record in relevant_topics :
+                    memory_parts.append(f"- {record}")
+
+        if len(self.database) > 0 : 
+            database_records = [f"'{key}': {value}" for key, value in self.database.items()] 
+            relevant_key_values = simple_rag(query, database_records, top_k = self.config.get("relevant_key_value_num", 3)) 
+            if len(relevant_key_values) > 0 : 
+                memory_parts.append("\n## Memory Database (Key-Value Pairs):")
+                for record in relevant_key_values :
+                    memory_parts.append(f"- {record}")
+
         return "\n".join(memory_parts)
 
     def prepare_operations(self) -> None :
@@ -157,7 +193,7 @@ class Memory :
     async def get_operations(self, query = None) -> Dict[str, Any] :
         operations = {} 
         for name, info in self.operations.items() :
-            if name in self.config.get("ignored_operations", ["add_memory_record", ]) : 
+            if name in self.config.get("ignore_operations", []) : 
                 continue
             operation = {
                 "name" : name,
@@ -271,7 +307,7 @@ class Memory :
                     self.summary[current_time] = data["summary"]
                     
                     # Keep only recent summaries (last 10)
-                    if len(self.summary) > 10:
+                    if len(self.summary) > self.config.get("saved_summary_num", 3) :
                         oldest_key = min(self.summary.keys())
                         del self.summary[oldest_key]
                 

@@ -8,22 +8,12 @@
    },
    "max_iters" : 5,
    "memory" : {
+      "ignore_operations" : [],
       "update_batch_size" : 5,
       "max_topics" : 5,
       "latest_record_num" : 5
    },
    "task" : {
       "response_summary_limit" : 200
-   },
-   "mcpServers" : {
-      "weather": {
-         "command": "[absolute_path_to_uv]/uv",
-         "args": [
-            "--directory",
-            "[absolute_path_to_pulsar]/pulsar-project/mcp_servers/weather",
-            "run",
-            "weather.py"
-         ]
-      } 
    } 
 }

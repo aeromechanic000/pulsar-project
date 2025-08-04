@@ -1,0 +1,13 @@
+{
+    "weather": {
+        "description": "US weather forecast.",
+        "type" : "uv_run",
+        "entry" : "weather.py",
+        "files" : [
+            {
+                "name" : "weather.py",
+                "path" : "https://raw.githubusercontent.com/modelcontextprotocol/quickstart-resources/main/weather-server-python/weather.py"
+            }
+        ]
+    }
+}

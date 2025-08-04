@@ -18,3 +18,11 @@ base_url: https://dashscope.aliyuncs.com/compatible-mode/v1/
 - qwen3-235b-a22b
 - qwen3-32b
 
+## GLM
+
+base_url: https://open.bigmodel.cn/api/paas/v4
+
+### Models 
+
+- glm-4.5
+- glm-4.5-air

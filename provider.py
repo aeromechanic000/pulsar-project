@@ -2,7 +2,7 @@
 import os, aiohttp
 from typing import Optional, Dict, List, Any
 from abc import ABC, abstractmethod
-from urllib.parse import quote, urljoin
+from urllib.parse import quote 
 
 from utils import *
 
@@ -18,7 +18,7 @@ def get_provider(provider_name = "Pollinations") :
         cls = AnthropicProvider
     elif provider_name == "Gemini" :
         cls = GeminiProvider
-    elif provider_name in ["Open", "Doubao", "Qwen", "OpenRouter", ] :
+    elif provider_name in ["Open", "Doubao", "Qwen", "GLM", "OpenRouter", ] :
         cls = OpenProvider
     return cls
 
@@ -66,7 +66,7 @@ class OllamaProvider(LLMProvider):
                 "stream" : False,
             }
 
-            async with session.post(urljoin(self.base_url, "api/generate"), headers=headers, json=payload) as response:
+            async with session.post(robust_urljoin(self.base_url, "api/generate"), headers=headers, json=payload) as response:
                 if response.status == 200:
                     response_data = await response.json()
                     return  response_data.get("response", "")
@@ -92,9 +92,11 @@ class OpenProvider(LLMProvider):
                 self.base_url = "https://ark.cn-beijing.volces.com/api/v3/"
             elif self.config["name"] == "Qwen" :
                 self.base_url = "https://dashscope.aliyuncs.com/compatible-mode/v1/"
+            elif self.config["name"] == "GLM" :
+                self.base_url = "https://open.bigmodel.cn/api/paas/v4"
             elif self.config["name"] == "OpenRouter" :
                 self.base_url = "https://api.openrouter.ai/v1/"
-        
+
         if len(self.env_name.strip()) < 1 : 
             self.env_name = f"{self.config['name'].upper()}_API_KEY"
 
@@ -115,10 +117,13 @@ class OpenProvider(LLMProvider):
                 "stream" : False,
             }
 
-            if self.config["name"] == "Qwen" and self.model.startswith("qwen3-") :
+            if self.config["name"] == "Qwen" and self.model.startswith("qwen3") :
                 payload["enable_thinking"] = False 
 
-            async with session.post(urljoin(self.base_url, "chat/completions"), headers=headers, json=payload) as response:
+            if self.config["name"] == "GLM" and self.model.startswith("glm") :
+                payload["thinking"] = {"type" : "disabled"} 
+
+            async with session.post(robust_urljoin(self.base_url, "chat/completions"), headers=headers, json=payload) as response:
                 if response.status == 200:
                     response_data = await response.json()
                     if "choices" in response_data:
@@ -162,7 +167,7 @@ class OpenAIProvider(LLMProvider):
                 "stream" : False,
             }
 
-            async with session.post(urljoin(self.base_url, "responses"), headers=headers, json=payload) as response:
+            async with session.post(robust_urljoin(self.base_url, "responses"), headers=headers, json=payload) as response:
                 if response.status == 200:
                     response_data = response.json()
                     if "output" in response_data.keys() : 
@@ -201,7 +206,7 @@ class AnthropicProvider(LLMProvider):
                 "stream" : False,
             }
 
-            async with session.post(urljoin(self.base_url, "messages"), headers=headers, json=payload) as response:
+            async with session.post(robust_urljoin(self.base_url, "messages"), headers=headers, json=payload) as response:
                 if response.status == 200:
                     response_data = await response.json()
                     return response_data["content"][0]["text"]

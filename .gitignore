@@ -1,11 +1,12 @@
 .vercel
 _*
 ._*
-__pycache__/*
-.venv/*
+__pycache__
+.venv
 .fslckout
+.mcp_servers
 fossil_ignore.sh
-api/__pycache__/*
-logs/*
-data/*
+api/__pycache__
+logs
+data
 configs-test.json
