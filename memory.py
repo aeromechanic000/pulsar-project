@@ -131,7 +131,7 @@ class Memory :
             if len(relevant_topics) > 0 : 
                 memory_parts.append("\n## Memory Topics:")
                 for record in relevant_topics :
-                    memory_parts.append(f"- {record}")
+                    memory_parts.append(f"- {record[1]}")
 
         if len(self.database) > 0 : 
             database_records = [f"'{key}': {value}" for key, value in self.database.items()] 
@@ -139,7 +139,7 @@ class Memory :
             if len(relevant_key_values) > 0 : 
                 memory_parts.append("\n## Memory Database (Key-Value Pairs):")
                 for record in relevant_key_values :
-                    memory_parts.append(f"- {record}")
+                    memory_parts.append(f"- {record[1]}")
 
         return "\n".join(memory_parts)
 

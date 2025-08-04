@@ -327,4 +327,4 @@ def simple_rag(query, records, top_k = 5) :
     keywords = get_keywords(clean_string(query))
     print(keywords)
     top_k_result = get_top_k_records(keywords, [clean_string(r) for r in records], top_k)
-    return [item[1] for item in top_k_result]
+    return [item[:2] for item in top_k_result]
